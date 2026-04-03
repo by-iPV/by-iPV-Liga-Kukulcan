@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>iPv Matchmaking Deportivo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="appBackground" class="app-background"></div>
+  <div class="app-shell">
+    <aside id="sidebar" class="sidebar card-glass">
+      <div class="sidebar-brand">
+        <div class="brand-mark">iPV</div>
+        <div class="sidebar-brand-copy">
+          <p class="eyebrow">Instituto Pretoriano</p>
+          <strong>Panel Deportivo</strong>
+        </div>
+      </div>
+
+      <button type="button" id="sidebarToggle" class="sidebar-toggle" aria-expanded="true">Colapsar</button>
+
+      <nav class="sidebar-nav" aria-label="Navegacion principal">
+        <button type="button" class="nav-item is-active" data-view="registro">Registro de equipos</button>
+        <button type="button" class="nav-item" data-view="resumen">Resumen</button>
+        <button type="button" class="nav-item" data-view="equipos">Equipos</button>
+        <button type="button" class="nav-item" data-view="partidos">Partidos</button>
+        <button type="button" class="nav-item admin-only" data-view="config">Configuracion admin</button>
+      </nav>
+    </aside>
+
+    <div class="main-shell">
+      <header class="topbar">
+        <div class="topbar-copy">
+          <p class="eyebrow">Temporada 2026</p>
+          <h1>Matchmaking deportivo listo para produccion</h1>
+          <p class="topbar-subtitle">Registro, visuales, sponsors, matching y administracion desde una sola experiencia SPA.</p>
+        </div>
+
+        <div class="topbar-actions">
+          <button type="button" id="loginToggle" class="btn btn-primary">Acceso con Google</button>
+          <div id="loginDropdown" class="login-dropdown hidden">
+            <p id="authStatus" class="muted">Inicia sesion para registrar o editar tus equipos.</p>
+            <div id="googleLoginButton"></div>
+            <div id="userSession" class="user-session hidden">
+              <strong id="userName">Usuario</strong>
+              <span id="userEmail" class="muted"></span>
+              <button type="button" id="logoutBtn" class="btn btn-ghost btn-small">Cerrar sesion</button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <section class="hero-grid">
+        <article class="hero-panel card-glass">
+          <div class="hero-panel-head">
+            <div>
+              <p class="eyebrow">Patrocinadores</p>
+              <h2>Header dinamico</h2>
+            </div>
+            <span id="backendBadge" class="status-pill">Cargando</span>
+          </div>
+          <p id="backendHint" class="muted">Conectando configuracion y galerias.</p>
+          <div id="sponsorsCarousel" class="sponsors-carousel">
+            <div class="empty-inline">Sin sponsors registrados.</div>
+          </div>
+        </article>
+
+        <article class="hero-panel card-glass">
+          <div class="hero-panel-head">
+            <div>
+              <p class="eyebrow">Resumen rapido</p>
+              <h2>Estado operativo</h2>
+            </div>
+          </div>
+          <div class="status-grid">
+            <div class="status-card">
+              <span>Equipos</span>
+              <strong id="teamCount">0</strong>
+            </div>
+            <div class="status-card">
+              <span>Cruces</span>
+              <strong id="overlapCount">0</strong>
+            </div>
+            <div class="status-card">
+              <span>Partidos</span>
+              <strong id="matchCount">0</strong>
+            </div>
+          </div>
+          <div class="hero-note">
+            Un registro de equipo y sus fechas representan la disponibilidad de ese equipo en esas fechas.
+          </div>
+        </article>
+
+        <article class="hero-panel card-glass">
+          <div class="hero-panel-head">
+            <div>
+              <p class="eyebrow">Equipos</p>
+              <h2>Logos activos</h2>
+            </div>
+          </div>
+          <div id="headerTeamLogos" class="team-logos-carousel">
+            <div class="empty-inline">Sin logos registrados.</div>
+          </div>
+        </article>
+      </section>
+
+      <main class="views-shell">
+        <section id="view-registro" class="view active">
+          <div class="view-grid view-grid-main">
+            <article class="panel card-glass">
+              <div class="panel-head">
+                <div>
+                  <p class="eyebrow">Registro</p>
+                  <h2>Alta de disponibilidad de equipos</h2>
+                </div>
+                <div class="panel-actions">
+                  <button type="button" id="resetDemoBtn" class="btn btn-ghost">Cargar demo</button>
+                  <button type="button" id="saveVisualSettingsBtn" class="btn btn-secondary">Guardar ajustes visuales</button>
+                </div>
+              </div>
+
+              <p id="teamFormDescription" class="section-copy">Un registro de equipo y sus fechas representan la disponibilidad de ese equipo en esas fechas.</p>
+
+              <form id="teamForm" class="form-grid">
+                <div class="field-grid field-grid-2">
+                  <label>
+                    Nombre del equipo
+                    <input type="text" id="teamName" name="teamName" placeholder="Ej. Centinelas Prepa - CDK" required>
+                  </label>
+                  <label>
+                    Rama
+                    <select id="branch" name="branch" required>
+                      <option value="">Selecciona una rama</option>
+                    </select>
+                  </label>
+                </div>
+
+                <div class="field-grid field-grid-3">
+                  <label>
+                    Categoria
+                    <select id="category" name="category" required>
+                      <option value="">Selecciona una categoria</option>
+                    </select>
+                  </label>
+                  <label>
+                    Fecha
+                    <input type="date" id="date" name="date" required>
+                  </label>
+                  <label>
+                    Matching
+                    <span class="toggle-field">
+                      <input type="checkbox" id="participateInMatching" name="participateInMatching" checked>
+                      <span>Participar en matching automatico</span>
+                    </span>
+                  </label>
+                </div>
+
+                <div class="field-grid field-grid-2">
+                  <label>
+                    Hora inicio
+                    <input type="time" id="startTime" name="startTime" required>
+                  </label>
+                  <label>
+                    Hora fin
+                    <input type="time" id="endTime" name="endTime" required>
+                  </label>
+                </div>
+
+                <div class="field-grid field-grid-2">
+                  <label>
+                    Fechas no disponibles
+                    <textarea id="unavailableDates" name="unavailableDates" rows="3" placeholder="2026-04-07, 2026-04-10"></textarea>
+                  </label>
+                  <label>
+                    Fechas preferentes
+                    <textarea id="preferredDates" name="preferredDates" rows="3" placeholder="2026-04-05, 2026-04-12"></textarea>
+                  </label>
+                </div>
+
+                <div class="field-grid field-grid-2 align-start">
+                  <div class="logo-preview-card">
+                    <p class="field-label">Logo seleccionado</p>
+                    <input type="hidden" id="teamLogoUrl" name="teamLogoUrl">
+                    <div id="teamLogoPreview" class="logo-preview">Sin logo seleccionado</div>
+                  </div>
+                  <div class="inline-help">
+                    <p class="field-label">Estado</p>
+                    <div id="messageBox" class="message-box" aria-live="polite"></div>
+                  </div>
+                </div>
+
+                <div class="panel-actions">
+                  <button type="submit" id="saveTeamBtn" class="btn btn-primary">Guardar equipo</button>
+                  <button type="button" id="cancelEditBtn" class="btn btn-ghost hidden">Cancelar edicion</button>
+                </div>
+              </form>
+            </article>
+
+            <article class="panel card-glass">
+              <div class="panel-head">
+                <div>
+                  <p class="eyebrow">Selector visual</p>
+                  <h2>Galerias desde Drive</h2>
+                </div>
+                <button type="button" id="loadAllGalleriesBtn" class="btn btn-secondary btn-small">Cargar galerias</button>
+              </div>
+
+              <div class="field-grid field-grid-3">
+                <label>
+                  Folder fondos
+                  <input type="text" id="backgroundFolderIdInput" placeholder="ID carpeta fondos">
+                </label>
+                <label>
+                  Folder logos
+                  <input type="text" id="logosFolderIdInput" placeholder="ID carpeta logos">
+                </label>
+                <label>
+                  Folder sponsors
+                  <input type="text" id="sponsorsFolderIdInput" placeholder="ID carpeta sponsors">
+                </label>
+              </div>
+
+              <div class="field-grid field-grid-2">
+                <label>
+                  Glass opacity
+                  <input type="range" id="glassOpacityInput" min="0.2" max="0.85" step="0.05">
+                </label>
+                <label>
+                  Fondo personalizado
+                  <span class="toggle-field">
+                    <input type="checkbox" id="enableCustomBackgroundInput">
+                    <span>Habilitar fondo desde Drive</span>
+                  </span>
+                </label>
+              </div>
+
+              <div class="gallery-section">
+                <div class="gallery-head">
+                  <div>
+                    <h3>backgroundImage</h3>
+                    <p class="muted">Selector visual tipo galeria.</p>
+                  </div>
+                  <div class="panel-actions">
+                    <button type="button" id="applyBackgroundBtn" class="btn btn-secondary btn-small">Aplicar imagen</button>
+                    <button type="button" id="reloadBackgroundGalleryBtn" class="btn btn-ghost btn-small">Actualizar</button>
+                  </div>
+                </div>
+                <div id="backgroundGalleryStatus" class="gallery-status muted">Esperando carpeta.</div>
+                <div id="backgroundGallery" class="gallery-grid"></div>
+              </div>
+
+              <div class="gallery-section">
+                <div class="gallery-head">
+                  <div>
+                    <h3>teamLogo</h3>
+                    <p class="muted">Haz click en un logo para asignarlo al equipo actual.</p>
+                  </div>
+                  <div class="panel-actions">
+                    <button type="button" id="applyTeamLogoBtn" class="btn btn-secondary btn-small">Usar como logo</button>
+                    <button type="button" id="reloadLogosGalleryBtn" class="btn btn-ghost btn-small">Actualizar</button>
+                  </div>
+                </div>
+                <div id="logosGalleryStatus" class="gallery-status muted">Esperando carpeta.</div>
+                <div id="logosGallery" class="gallery-grid"></div>
+              </div>
+
+              <div class="gallery-section">
+                <div class="gallery-head">
+                  <div>
+                    <h3>sponsors</h3>
+                    <p class="muted">Seleccion multiple para el carrusel superior.</p>
+                  </div>
+                  <button type="button" id="reloadSponsorsGalleryBtn" class="btn btn-ghost btn-small">Actualizar</button>
+                </div>
+                <div id="sponsorsGalleryStatus" class="gallery-status muted">Esperando carpeta.</div>
+                <div id="sponsorsGallery" class="gallery-grid"></div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section id="view-resumen" class="view">
+          <div class="view-grid">
+            <article class="panel card-glass">
+              <div class="panel-head">
+                <div>
+                  <p class="eyebrow">Resumen</p>
+                  <h2>Equipos registrados</h2>
+                </div>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Equipo</th>
+                      <th>Rama</th>
+                      <th>Categoria</th>
+                      <th>Fecha</th>
+                      <th>Horario</th>
+                      <th>Logo</th>
+                      <th>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody id="teamsTableBody">
+                    <tr><td colspan="7" class="empty-state">Todavia no hay equipos registrados.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </article>
+
+            <article class="panel card-glass">
+              <div class="panel-head">
+                <div>
+                  <p class="eyebrow">Cruces</p>
+                  <h2>Coincidencias de horario</h2>
+                </div>
+              </div>
+              <div id="overlapsList" class="cards-list">
+                <div class="empty-state">Aun no se detectan coincidencias.</div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section id="view-equipos" class="view">
+          <div class="view-grid">
+            <article class="panel card-glass">
+              <div class="panel-head">
+                <div>
+                  <p class="eyebrow">Equipos</p>
+                  <h2>Listado visual</h2>
+                </div>
+              </div>
+              <div id="viewEquiposList" class="team-cards-grid">
+                <div class="empty-state">Sin equipos registrados.</div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section id="view-partidos" class="view">
+          <div class="view-grid">
+            <article class="panel card-glass">
+              <div class="panel-head">
+                <div>
+                  <p class="eyebrow">Matching</p>
+                  <h2>Partidos sugeridos</h2>
+                </div>
+                <div class="panel-actions">
+                  <button type="button" id="generateMatchesBtn" class="btn btn-secondary">Generar partidos</button>
+                </div>
+              </div>
+
+              <div class="matches-head">
+                <span>Partido sugerido</span>
+                <span>Rival</span>
+                <span>Fecha</span>
+                <span>Sede</span>
+              </div>
+              <div id="matchesList" class="matches-list">
+                <div class="empty-state">Todavia no se han generado partidos.</div>
+              </div>
+            </article>
+
+            <article class="panel card-glass">
+              <div class="panel-head">
+                <div>
+                  <p class="eyebrow">Vista alterna</p>
+                  <h2>Listado compacto</h2>
+                </div>
+              </div>
+              <div id="viewPartidosList" class="cards-list">
+                <div class="empty-state">Sin partidos sugeridos.</div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section id="view-config" class="view">
+          <div class="view-grid view-grid-main">
+            <article class="panel card-glass admin-only">
+              <div class="panel-head">
+                <div>
+                  <p class="eyebrow">Admin</p>
+                  <h2>Configuracion compacta</h2>
+                </div>
+              </div>
+
+              <form id="adminForm" class="form-grid">
+                <div class="field-grid field-grid-2">
+                  <label>
+                    Fecha inicio
+                    <input type="date" id="adminStartDate">
+                  </label>
+                  <label>
+                    Fecha fin
+                    <input type="date" id="adminEndDate">
+                  </label>
+                </div>
+
+                <label>
+                  Fechas bloqueadas
+                  <textarea id="blockedDates" rows="3" placeholder="2026-04-10 | Torneo estatal"></textarea>
+                </label>
+
+                <div class="field-grid field-grid-2">
+                  <label>
+                    Fecha bloqueada
+                    <input type="date" id="blockedDateInput">
+                  </label>
+                  <label>
+                    Motivo
+                    <input type="text" id="blockedReasonInput" placeholder="Ej. Final regional">
+                  </label>
+                </div>
+
+                <div class="field-grid field-grid-3">
+                  <label>
+                    Modo matching
+                    <select id="matchingMode">
+                      <option value="roundRobin">Todos contra todos</option>
+                      <option value="groups">Por grupos</option>
+                      <option value="manual">Sin matching inicial</option>
+                    </select>
+                  </label>
+                  <label>
+                    Numero de grupos
+                    <input type="number" id="groupCount" min="2" max="8" step="1" value="3">
+                  </label>
+                  <label>
+                    Manual admin
+                    <span class="toggle-field">
+                      <input type="checkbox" id="manualMatchingEnabled">
+                      <span>Admin habilita manualmente</span>
+                    </span>
+                  </label>
+                </div>
+
+                <div class="panel-actions">
+                  <button type="button" id="addBlockedDateBtn" class="btn btn-ghost btn-small">Agregar fecha</button>
+                  <button type="button" id="addRangeBtn" class="btn btn-ghost btn-small">Agregar rango</button>
+                  <button type="submit" class="btn btn-primary">Guardar configuracion</button>
+                </div>
+              </form>
+            </article>
+
+            <article class="panel card-glass">
+              <div class="panel-head">
+                <div>
+                  <p class="eyebrow">Lectura</p>
+                  <h2>Fechas no disponibles</h2>
+                </div>
+              </div>
+              <div id="userBlockedView" class="readable-panel">
+                <div id="blockedDatesReadable" class="readable-list">
+                  <div class="empty-state">Sin fechas bloqueadas configuradas.</div>
+                </div>
+              </div>
+            </article>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="app.js"></script>
+</body>
+</html>
