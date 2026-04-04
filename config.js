@@ -10,7 +10,7 @@ window.APP_CONFIG = {
     backgroundFolderId: "17J5JDagGIwX3Zdei_WjD1jbB63k7LF-e",
     logosFolderId: "1-BZvUvJMDqC0zaEyRBjFeI-R2h69BZbU6q1LYJKnbS0RerlXzV860o8KAhWQE58_lb0oIywS",
     sponsorsFolderId: "1MvG59spxK9cQGzDPl4mqS3MdIq0TgOrL",
-    glassOpacity: "0.6",
+    glassOpacity: "0.2",
     enableCustomBackground: true,
     adminEmails: [],
     backgroundImage: ""
@@ -41,7 +41,7 @@ window.APP_CONFIG = {
       overrideBlockedDates: [],
       ownerEmail: "demo1@example.com",
       createdAt: "2026-04-01T10:00:00.000Z",
-      logoUrl: "",
+      logoUrl: "https://drive.google.com/open?id=1POrPyQPEmetVsDhwXFMInfDTcAfiACcl",
       participateInMatching: true
     },
     {
@@ -57,7 +57,7 @@ window.APP_CONFIG = {
       overrideBlockedDates: [],
       ownerEmail: "demo2@example.com",
       createdAt: "2026-04-01T10:02:00.000Z",
-      logoUrl: "",
+      logoUrl: "https://drive.google.com/open?id=15x5qLfJ9GfeYPJBCEqNLNFUl7gVmTiqs",
       participateInMatching: true
     },
     {
@@ -73,7 +73,7 @@ window.APP_CONFIG = {
       overrideBlockedDates: [],
       ownerEmail: "demo3@example.com",
       createdAt: "2026-04-01T10:03:00.000Z",
-      logoUrl: "",
+      logoUrl: "https://drive.google.com/open?id=1POrPyQPEmetVsDhwXFMInfDTcAfiACcl",
       participateInMatching: true
     }
   ],

@@ -12,14 +12,16 @@
     logosfolderid: "logosFolderId",
     sponsorsfolderid: "sponsorsFolderId"
   };
+  const initialLoggedUser = getSessionUser();
   const state = {
     teams: [],
     matches: [],
-    settings: normalizeSettings(config.settings || {}),
+    settings: normalizeSettings(config.settings || {}, initialLoggedUser),
     adminConfig: normalizeAdminConfig(config.adminConfig || {}),
     capacity: normalizeCapacity(config.capacityRows || []),
     configRows: null,
-    loggedUser: readJson(config.sessionStorageKey || "matchmaking-session", null),
+    baseSettings: null,
+    loggedUser: initialLoggedUser,
     editingTeamId: "",
     view: "registro",
     galleries: { backgroundImage: [], teamLogo: [], sponsors: [] },
@@ -28,9 +30,13 @@
       teamLogo: localStorage.getItem("selected_team_logo") || "",
       sponsors: readJson("selected_sponsors", [])
     },
+    matchUi: {
+      selectedMatchId: "",
+      draftAccepted: {}
+    },
     matching: { mode: "roundRobin", groupCount: 3, manual: false },
     branches: ["varonil", "femenil", "mixto"],
-    categories: ["Libre"]
+    categories: ["Libre", "Juvenil", "Infantil Mayor"]
   };
   const el = {};
 
@@ -42,6 +48,7 @@
     populateStaticOptions();
     setToday();
     hydrateVisualInputs();
+    updateSidebarToggle();
     renderAuth();
     try {
       await loadBootstrap();
@@ -51,17 +58,17 @@
       applyGlass();
       renderAll();
       await loadAllConfiguredGalleries(false);
-      showMessage("Galerias cargadas", "success");
+      showMessage("Galerías cargadas", "success");
     } catch (error) {
       console.error(error);
       applyGlass();
       renderAll();
-      showMessage("No se pudo cargar la configuracion inicial", "error");
+      showMessage("No se pudo cargar la configuración inicial", "error");
     }
   }
 
   function cacheElements() {
-    ["appBackground","sidebar","sidebarToggle","loginToggle","loginDropdown","authStatus","googleLoginButton","userSession","userName","userEmail","logoutBtn","backendBadge","backendHint","teamCount","overlapCount","matchCount","sponsorsCarousel","headerTeamLogos","teamForm","teamName","branch","category","date","startTime","endTime","unavailableDates","preferredDates","participateInMatching","teamLogoUrl","teamLogoPreview","saveTeamBtn","cancelEditBtn","messageBox","teamsTableBody","overlapsList","matchesList","viewEquiposList","viewPartidosList","backgroundFolderIdInput","logosFolderIdInput","sponsorsFolderIdInput","glassOpacityInput","enableCustomBackgroundInput","loadAllGalleriesBtn","saveVisualSettingsBtn","applyBackgroundBtn","applyTeamLogoBtn","reloadBackgroundGalleryBtn","reloadLogosGalleryBtn","reloadSponsorsGalleryBtn","backgroundGalleryStatus","backgroundGallery","logosGalleryStatus","logosGallery","sponsorsGalleryStatus","sponsorsGallery","adminForm","adminStartDate","adminEndDate","blockedDates","blockedDateInput","blockedReasonInput","matchingMode","groupCount","manualMatchingEnabled","addBlockedDateBtn","addRangeBtn","userBlockedView","blockedDatesReadable","generateMatchesBtn","resetDemoBtn"].forEach(function (id) {
+    ["appBackground","sidebar","sidebarToggle","loginToggle","loginDropdown","authStatus","authDebug","googleLoginButton","userSession","userName","userEmail","logoutBtn","backendBadge","backendHint","teamCount","overlapCount","matchCount","sponsorsCarousel","headerTeamLogos","heroLoginBtn","authProbeBtn","teamForm","teamName","branch","category","date","startTime","endTime","unavailableDates","preferredDates","participateInMatching","teamLogoUrl","teamLogoPreview","saveTeamBtn","cancelEditBtn","messageBox","teamsTableBody","overlapsList","matchesList","viewEquiposList","viewPartidosList","visualConfigSection","backgroundSection","logosSection","sponsorsSection","backgroundFolderIdInput","logosFolderIdInput","sponsorsFolderIdInput","glassOpacityInput","enableCustomBackgroundInput","accentPresetSelect","accentExpandCardsInput","loadAllGalleriesBtn","saveVisualSettingsBtn","applyBackgroundBtn","applyTeamLogoBtn","reloadBackgroundGalleryBtn","reloadLogosGalleryBtn","reloadSponsorsGalleryBtn","backgroundGalleryStatus","backgroundGallery","logosGalleryStatus","logosGallery","sponsorsGalleryStatus","sponsorsGallery","adminForm","adminStartDate","adminEndDate","blockedDates","blockedDateInput","blockedReasonInput","matchingMode","groupCount","manualMatchingEnabled","addBlockedDateBtn","addRangeBtn","userBlockedView","blockedDatesReadable","generateMatchesBtn","saveMatchesBtn","acceptAllMatches","resetDemoBtn"].forEach(function (id) {
       el[id] = document.getElementById(id);
     });
     el.navItems = Array.from(document.querySelectorAll(".nav-item"));
@@ -71,7 +78,8 @@
 
   function bindEvents() {
     el.sidebarToggle.addEventListener("click", toggleSidebar);
-    el.loginToggle.addEventListener("click", toggleLoginDropdown);
+    el.heroLoginBtn.addEventListener("click", toggleLoginDropdown);
+    if (el.authProbeBtn) el.authProbeBtn.addEventListener("click", toggleLoginDropdown);
     document.addEventListener("click", handleClickOutside);
     el.logoutBtn.addEventListener("click", logout);
     el.navItems.forEach(function (button) {
@@ -80,6 +88,8 @@
     el.teamForm.addEventListener("submit", saveTeam);
     el.cancelEditBtn.addEventListener("click", cancelEdit);
     el.generateMatchesBtn.addEventListener("click", generateMatchesFlow);
+    el.saveMatchesBtn.addEventListener("click", saveAcceptedMatches);
+    el.acceptAllMatches.addEventListener("change", toggleAcceptAllMatches);
     el.resetDemoBtn.addEventListener("click", seedDemo);
     el.loadAllGalleriesBtn.addEventListener("click", function () { loadAllConfiguredGalleries(true); });
     el.applyBackgroundBtn.addEventListener("click", applySelectedBackground);
@@ -89,8 +99,16 @@
     el.reloadSponsorsGalleryBtn.addEventListener("click", function () { loadGallery("sponsors", true); });
     el.saveVisualSettingsBtn.addEventListener("click", saveVisualSettings);
     el.glassOpacityInput.addEventListener("input", function () {
-      state.settings.glassOpacity = String(el.glassOpacityInput.value || "0.6");
+      state.settings.glassOpacity = String(el.glassOpacityInput.value || getDefaultGlassOpacity(state.loggedUser, state.settings.adminEmails));
       applyGlass();
+    });
+    el.accentPresetSelect.addEventListener("change", function () {
+      state.settings.accentPreset = el.accentPresetSelect.value;
+      applyAccentPreset();
+    });
+    el.accentExpandCardsInput.addEventListener("change", function () {
+      state.settings.accentExpandCards = Boolean(el.accentExpandCardsInput.checked);
+      applyAccentPreset();
     });
     el.enableCustomBackgroundInput.addEventListener("change", function () {
       state.settings.enableCustomBackground = Boolean(el.enableCustomBackgroundInput.checked);
@@ -106,7 +124,7 @@
 
   function populateStaticOptions() {
     fillSelect(el.branch, state.branches, "Selecciona una rama");
-    fillSelect(el.category, state.categories, "Selecciona una categoria");
+    fillSelect(el.category, state.categories, "Selecciona una categoría");
   }
 
   function setToday() {
@@ -139,6 +157,7 @@
   async function loadSettings() {
     state.settings = normalizeSettings(config.settings || {});
     const rows = state.configRows || await tryLoadConfigRows();
+    state.settings.dynamic = state.settings.dynamic || {};
     rows.forEach(function (row) {
       const key = normalizeKey(row[0]);
       const value = row[1];
@@ -155,10 +174,13 @@
       }
       if (Object.prototype.hasOwnProperty.call(state.settings, target) && String(value).trim()) {
         state.settings[target] = target === "enableCustomBackground" ? !/false/i.test(String(value)) : String(value).trim();
+        return;
       }
+      state.settings.dynamic[key] = String(value).trim();
     });
     hydrateVisualInputs();
     applyGlass();
+    state.baseSettings = Object.assign({}, state.settings, { dynamic: Object.assign({}, state.settings.dynamic || {}) });
   }
 
   async function tryLoadConfigRows() {
@@ -180,14 +202,33 @@
     el.backgroundFolderIdInput.value = state.settings.backgroundFolderId || "";
     el.logosFolderIdInput.value = state.settings.logosFolderId || "";
     el.sponsorsFolderIdInput.value = state.settings.sponsorsFolderId || "";
-    el.glassOpacityInput.value = state.settings.glassOpacity || "0.6";
+    el.glassOpacityInput.value = state.settings.glassOpacity || getDefaultGlassOpacity(state.loggedUser, state.settings.adminEmails);
     el.enableCustomBackgroundInput.checked = Boolean(state.settings.enableCustomBackground);
+    el.accentPresetSelect.value = state.settings.accentPreset || "outline";
+    el.accentExpandCardsInput.checked = Boolean(state.settings.accentExpandCards);
     el.adminStartDate.value = state.adminConfig.startDate || "";
     el.adminEndDate.value = state.adminConfig.endDate || "";
     el.blockedDates.value = serializeBlockedDates(state.adminConfig.blockedDates);
     el.matchingMode.value = state.matching.mode;
     el.groupCount.value = String(state.matching.groupCount);
     el.manualMatchingEnabled.checked = state.matching.manual;
+  }
+
+  function getSessionUser() {
+    return readJson(config.sessionStorageKey || "ipv-matchmaking-session", null);
+  }
+
+  function getUserVisualSettingsKey(user) {
+    const currentUser = user || state.loggedUser || getSessionUser();
+    const userKey = currentUser && currentUser.email ? currentUser.email.trim().toLowerCase() : "guest";
+    return "ipv_visual_settings_" + userKey;
+  }
+
+  function getDefaultGlassOpacity(user, adminEmails) {
+    const currentUser = user || getSessionUser();
+    const email = currentUser && currentUser.email ? currentUser.email.toLowerCase() : "";
+    const admins = parseEmails(adminEmails || (config.settings && config.settings.adminEmails) || []);
+    return email && admins.indexOf(email) >= 0 ? "0.08" : "0.2";
   }
 
   async function getImages(folderId, forceRefresh) {
@@ -233,13 +274,13 @@
     try {
       const images = await getImages(current.folderId, forceRefresh);
       state.galleries[type] = images;
-      current.status.textContent = images.length ? "Galerias cargadas" : "No hay imagenes";
+      current.status.textContent = images.length ? "Galerías cargadas" : "No hay imágenes";
       renderGallery(type);
       if (type === "backgroundImage" && !state.selected.background && images[0]) selectGalleryItem("backgroundImage", images[0].url);
     } catch (error) {
       console.error(error);
-      current.status.textContent = "Error al cargar imagenes";
-      current.target.innerHTML = emptyGallery("No hay imagenes disponibles en la carpeta");
+      current.status.textContent = "Error al cargar imágenes";
+      current.target.innerHTML = emptyGallery("No hay imágenes disponibles en la carpeta");
     }
   }
   function renderGallery(type) {
@@ -247,7 +288,7 @@
     const target = targetMap[type];
     const items = state.galleries[type] || [];
     if (!items.length) {
-      target.innerHTML = emptyGallery("No hay imagenes disponibles en la carpeta");
+      target.innerHTML = emptyGallery("No hay imágenes disponibles en la carpeta");
       return;
     }
     target.innerHTML = items.map(function (item) {
@@ -316,12 +357,15 @@
     state.settings.backgroundFolderId = el.backgroundFolderIdInput.value.trim();
     state.settings.logosFolderId = el.logosFolderIdInput.value.trim();
     state.settings.sponsorsFolderId = el.sponsorsFolderIdInput.value.trim();
-    state.settings.glassOpacity = String(el.glassOpacityInput.value || "0.6");
+    state.settings.glassOpacity = String(el.glassOpacityInput.value || getDefaultGlassOpacity(state.loggedUser, state.settings.adminEmails));
     state.settings.enableCustomBackground = Boolean(el.enableCustomBackgroundInput.checked);
-    localStorage.setItem("ipv_visual_settings", JSON.stringify(state.settings));
+    state.settings.accentPreset = el.accentPresetSelect.value || "outline";
+    state.settings.accentExpandCards = Boolean(el.accentExpandCardsInput.checked);
+    localStorage.setItem(getUserVisualSettingsKey(state.loggedUser), JSON.stringify(state.settings));
     applyGlass();
+    applyAccentPreset();
     applyBackground(state.selected.background || state.settings.backgroundImage);
-    showMessage("Configuracion actualizada", "success");
+      showMessage("Configuración actualizada", "success");
   }
 
   function applyBackground(url) {
@@ -334,7 +378,12 @@
   }
 
   function applyGlass() {
-    document.documentElement.style.setProperty("--glass-opacity", String(state.settings.glassOpacity || "0.6"));
+    document.documentElement.style.setProperty("--glass-opacity", String(state.settings.glassOpacity || getDefaultGlassOpacity(state.loggedUser, state.settings.adminEmails)));
+  }
+
+  function applyAccentPreset() {
+    document.body.setAttribute("data-accent-preset", state.settings.accentPreset || "outline");
+    document.body.setAttribute("data-accent-expand", state.settings.accentExpandCards ? "true" : "false");
   }
 
   async function saveTeam(event) {
@@ -378,7 +427,7 @@
 
   function cancelEdit() {
     resetTeamForm();
-    showMessage("Edicion cancelada", "success");
+    showMessage("Edición cancelada", "success");
   }
 
   function startEdit(id) {
@@ -403,6 +452,7 @@
   function renderAll() {
     setView(state.view);
     renderAuth();
+    renderConnectedVisibility();
     renderStats();
     renderLogoPreview();
     renderTeamsTable();
@@ -414,23 +464,42 @@
     renderTeamLogos();
     renderBlockedDates();
     renderAdminVisibility();
+    applyAccentPreset();
   }
 
   function renderAuth() {
     const isLogged = Boolean(state.loggedUser && state.loggedUser.email);
     el.loginDropdown.classList.toggle("hidden", !el.loginDropdown.dataset.open);
+    el.heroLoginBtn.classList.toggle("is-google-icon", isLogged);
+    el.heroLoginBtn.innerHTML = isLogged ? "<span class='google-mark' aria-hidden='true'>G</span>" : "Acceso con Google";
+    el.heroLoginBtn.setAttribute("aria-label", isLogged ? "Cuenta de Google" : "Acceso con Google");
+    if (el.authProbeBtn) el.authProbeBtn.textContent = isLogged ? "Panel de cuenta Google" : "Probar acceso Google";
     if (isLogged) {
-      el.authStatus.textContent = isAdmin() ? "Sesion activa como administrador." : "Sesion activa. Puedes editar tus equipos.";
+      setAuthDebug("");
+      el.authStatus.textContent = isAdmin() ? "Sesión activa como administrador." : "Sesión activa. Puedes editar tus equipos.";
       el.userSession.classList.remove("hidden");
       el.userName.textContent = state.loggedUser.name || "Usuario";
       el.userEmail.textContent = state.loggedUser.email || "";
       el.googleLoginButton.classList.add("hidden");
     } else {
-      el.authStatus.textContent = String(config.googleClientId || "").trim() ? "Abre este panel para iniciar sesion." : "Agrega tu Google Client ID en config.js.";
+      el.authStatus.textContent = String(config.googleClientId || "").trim() ? "Abre este panel para iniciar sesión." : "Agrega tu Google Client ID en config.js.";
       el.userSession.classList.add("hidden");
       el.googleLoginButton.classList.remove("hidden");
     }
-    initGoogleAuth();
+  }
+
+  function renderConnectedVisibility() {
+    const isLogged = Boolean(state.loggedUser && state.loggedUser.email);
+    el.saveTeamBtn.classList.toggle("hidden", !isLogged);
+    el.cancelEditBtn.classList.toggle("hidden", !isLogged || !state.editingTeamId);
+    el.saveVisualSettingsBtn.classList.toggle("hidden", !isLogged);
+    el.saveMatchesBtn.classList.toggle("hidden", !isLogged);
+    el.applyTeamLogoBtn.classList.toggle("hidden", !isLogged);
+    el.acceptAllMatches.closest(".accept-all").classList.toggle("hidden", !isLogged);
+    el.participateInMatching.closest("label").classList.toggle("hidden", !isLogged);
+    if (!isLogged && state.editingTeamId) {
+      state.editingTeamId = "";
+    }
   }
 
   function renderStats() {
@@ -442,7 +511,7 @@
 
   function renderTeamsTable() {
     if (!state.teams.length) {
-      el.teamsTableBody.innerHTML = "<tr><td colspan='7' class='empty-state'>Todavia no hay equipos registrados.</td></tr>";
+      el.teamsTableBody.innerHTML = "<tr><td colspan='7' class='empty-state'>Todavía no hay equipos registrados.</td></tr>";
       return;
     }
     el.teamsTableBody.innerHTML = state.teams.map(function (team) {
@@ -461,15 +530,15 @@
       return;
     }
     el.viewEquiposList.innerHTML = state.teams.map(function (team) {
-      const logo = team.logoUrl ? "<img class='team-card-logo' src='" + esc(safeImageUrl(team.logoUrl)) + "' alt='" + esc(team.name) + "' onerror=\"this.src='" + PLACEHOLDER + "'\">" : "<div class='team-card-logo'>" + esc(initials(team.name)) + "</div>";
-      return "<article class='team-card'><div class='panel-head'><div><h3>" + esc(team.name) + "</h3><p class='muted'>" + esc(team.branch + " · " + team.category) + "</p></div>" + logo + "</div><div class='small-muted'>" + esc(formatHumanDate(team.date) + " · " + team.startTime + " - " + team.endTime) + "</div></article>";
+      const logo = team.logoUrl ? "<img class='team-card-logo' src='" + esc(safeImageUrl(team.logoUrl)) + "' alt='" + esc(team.name) + "' onerror=\"this.src='" + PLACEHOLDER + "'\">" : "<div class='team-card-logo-fallback'>" + esc(initials(team.name)) + "</div>";
+      return "<article class='team-card'><div class='team-card-head'><div><h3>" + esc(team.name) + "</h3><p class='muted'>" + esc(team.branch + " · " + team.category) + "</p></div><div class='team-card-logo-wrap'>" + logo + "</div></div><div class='small-muted'>" + esc(formatHumanDate(team.date) + " · " + team.startTime + " - " + team.endTime) + "</div></article>";
     }).join("");
   }
 
   function renderOverlaps() {
     const overlaps = computeOverlaps();
     if (!overlaps.length) {
-      el.overlapsList.innerHTML = "<div class='empty-state'>Aun no se detectan coincidencias.</div>";
+      el.overlapsList.innerHTML = "<div class='empty-state'>Aún no se detectan coincidencias.</div>";
       return;
     }
     el.overlapsList.innerHTML = overlaps.map(function (item) {
@@ -477,32 +546,70 @@
     }).join("");
   }
   function renderMatches() {
+    const isLogged = Boolean(state.loggedUser && state.loggedUser.email);
     if (!state.matches.length) {
-      el.matchesList.innerHTML = "<div class='empty-state'>Todavia no se han generado partidos.</div>";
+      el.matchesList.innerHTML = "<div class='empty-state'>Todavía no se han generado partidos.</div>";
+      el.acceptAllMatches.checked = false;
+      el.acceptAllMatches.indeterminate = false;
       return;
     }
+    if (!state.matchUi.selectedMatchId || !state.matches.some(function (item) { return item.id === state.matchUi.selectedMatchId; })) {
+      state.matchUi.selectedMatchId = state.matches[0].id;
+    }
+    state.matchUi.draftAccepted = buildDraftAccepted();
     el.matchesList.innerHTML = state.matches.map(function (match) {
-      const badge = dateBadge(match.date);
-      return "<article class='match-card'><div class='match-main'><div class='match-date-badge'><span class='match-date-day'>" + esc(badge.day) + "</span><span class='match-date-month'>" + esc(badge.month) + "</span></div><div class='match-team'>" + renderMatchLogo(match.teamA.logoUrl, match.teamA.name) + "<strong>" + esc(match.teamA.name) + "</strong></div><div class='match-score'>vs</div><div class='match-team'>" + renderMatchLogo(match.teamB.logoUrl, match.teamB.name) + "<strong>" + esc(match.teamB.name) + "</strong></div><div>" + esc(match.venue || "Por confirmar") + "<div class='small-muted'>" + esc(match.date) + "</div></div></div><div class='match-detail'><span class='tag'>" + esc(match.branch + " · " + match.category + (match.group ? " · " + match.group : "")) + "</span><div><strong>Alternativas:</strong></div><div class='match-alt-list'>" + renderAlternatives(match.alternatives) + "</div><label class='accept-row'><input type='checkbox' class='accept-match' data-id='" + esc(match.id) + "' " + (match.accepted ? "checked" : "") + "><span>Aceptar este partido</span></label></div></article>";
+      const venueValue = formatVenueLabel(match);
+      const venueSubline = match.court || (match.venue ? "Cancha por confirmar" : "Sede por confirmar");
+      const action = isLogged ? "<label class='match-summary-action' aria-label='Aceptar partido'><input type='checkbox' class='accept-match' data-id='" + esc(match.id) + "' " + (state.matchUi.draftAccepted[match.id] ? "checked" : "") + "></label>" : "";
+      return "<article class='match-summary" + (state.matchUi.selectedMatchId === match.id ? " is-active" : "") + "' data-id='" + esc(match.id) + "'><div class='match-summary-party'><strong class='match-summary-title'>" + esc(match.teamA.name) + "</strong><span class='match-summary-meta'>" + esc(match.branch + " · " + match.category + (match.group ? " · " + match.group : "")) + "</span></div><div class='match-summary-opponent'><strong class='match-summary-title'>" + esc(match.teamB.name) + "</strong><span class='match-summary-meta'>" + esc(match.startTime + " - " + match.endTime) + "</span></div><div class='match-summary-meta'><strong class='match-summary-title'>" + esc(formatHumanDate(match.date)) + "</strong><span>" + esc(match.date) + "</span></div><div class='match-summary-meta'><strong class='match-summary-title'>" + esc(venueValue) + "</strong><span>" + esc(venueSubline) + "</span></div>" + action + "</article>";
     }).join("");
-    el.matchesList.querySelectorAll(".accept-match").forEach(function (checkbox) {
-      checkbox.addEventListener("change", function () {
-        const match = state.matches.find(function (item) { return item.id === checkbox.dataset.id; });
-        if (match) match.accepted = checkbox.checked;
-        persistData();
+    el.matchesList.querySelectorAll(".match-summary").forEach(function (card) {
+      card.addEventListener("click", function () {
+        state.matchUi.selectedMatchId = card.dataset.id;
+        renderMatches();
         renderCompactMatches();
       });
     });
+    el.matchesList.querySelectorAll(".accept-match").forEach(function (checkbox) {
+      checkbox.addEventListener("change", function () {
+        state.matchUi.draftAccepted[checkbox.dataset.id] = checkbox.checked;
+        syncAcceptAllState();
+        renderCompactMatches();
+      });
+      checkbox.addEventListener("click", function (event) {
+        event.stopPropagation();
+      });
+    });
+    syncAcceptAllState();
   }
 
   function renderCompactMatches() {
+    const isLogged = Boolean(state.loggedUser && state.loggedUser.email);
     if (!state.matches.length) {
-      el.viewPartidosList.innerHTML = "<div class='empty-state'>Sin partidos sugeridos.</div>";
+      el.viewPartidosList.innerHTML = "<div class='empty-state'>Selecciona un partido para ver su detalle.</div>";
       return;
     }
-    el.viewPartidosList.innerHTML = state.matches.map(function (match) {
-      return "<article class='match-card'><h3>" + esc(match.teamA.name + " vs " + match.teamB.name) + "</h3><div>" + esc(formatHumanDate(match.date) + " · " + match.startTime + " - " + match.endTime) + "</div><div class='small-muted'>" + esc((match.venue || "Sede por confirmar") + (match.accepted ? " · Aceptado" : " · Pendiente")) + "</div></article>";
-    }).join("");
+    const selected = state.matches.find(function (match) { return match.id === state.matchUi.selectedMatchId; }) || state.matches[0];
+    if (!selected) {
+      el.viewPartidosList.innerHTML = "<div class='empty-state'>Selecciona un partido para ver su detalle.</div>";
+      return;
+    }
+    const badge = dateBadge(selected.date);
+    const accepted = Boolean(state.matchUi.draftAccepted[selected.id]);
+    const venueLink = getVenueLink(selected.venue);
+    const venueValue = formatVenueLabel(selected);
+    const venueHtml = venueLink ? "<a class='match-link' href='" + esc(venueLink) + "' target='_blank' rel='noopener noreferrer'>" + esc(venueValue) + "</a>" : esc(venueValue);
+    const alternatives = renderAlternatives(selected.alternatives);
+    const detailAction = isLogged ? "<label class='match-detail-actions'><input type='checkbox' class='accept-match-detail' data-id='" + esc(selected.id) + "' " + (accepted ? "checked" : "") + "><span>Aceptar este partido</span></label>" : "";
+    el.viewPartidosList.innerHTML = "<article class='match-card match-detail-card'><div class='match-detail-header'><div class='match-date-badge'><span class='match-date-day'>" + esc(badge.day) + "</span><span class='match-date-month'>" + esc(badge.month) + "</span></div><div class='match-detail-team'>" + renderMatchLogo(selected.teamA.logoUrl, selected.teamA.name) + "<strong>" + esc(selected.teamA.name) + "</strong></div><div class='match-detail-vs'>VS</div><div class='match-detail-team'>" + renderMatchLogo(selected.teamB.logoUrl, selected.teamB.name) + "<strong>" + esc(selected.teamB.name) + "</strong></div><div class='match-detail-side'><span class='match-detail-label'>Estado</span><span class='tag'>" + esc(accepted ? "Aceptado" : "Pendiente") + "</span></div></div><div class='match-detail-grid'><div class='match-detail-block'><span class='match-detail-label'>Partido sugerido</span><span class='match-detail-value'>" + esc(selected.teamA.name) + "</span></div><div class='match-detail-block'><span class='match-detail-label'>Rival</span><span class='match-detail-value'>" + esc(selected.teamB.name) + "</span></div><div class='match-detail-block'><span class='match-detail-label'>Fecha</span><span class='match-detail-value'>" + esc(formatHumanDate(selected.date) + " · " + selected.startTime + " - " + selected.endTime) + "</span></div><div class='match-detail-block'><span class='match-detail-label'>Sede</span><span class='match-detail-value'>" + venueHtml + "</span></div></div><div class='match-detail-block'><span class='match-detail-label'>Categoría del cruce</span><span class='match-detail-value'>" + esc(selected.branch + " · " + selected.category + (selected.group ? " · " + selected.group : "")) + "</span></div><div class='match-detail-footer'><div><span class='match-detail-label'>Alternativas</span><div class='match-alt-list'>" + (alternatives || "<span class='small-muted'>Sin alternativas disponibles.</span>") + "</div></div>" + detailAction + "</div></article>";
+    const detailCheckbox = el.viewPartidosList.querySelector(".accept-match-detail");
+    if (detailCheckbox) {
+      detailCheckbox.addEventListener("change", function () {
+        state.matchUi.draftAccepted[selected.id] = detailCheckbox.checked;
+        renderMatches();
+        renderCompactMatches();
+      });
+    }
   }
 
   function renderSponsors() {
@@ -536,6 +643,14 @@
   function renderAdminVisibility() {
     const admin = isAdmin();
     el.adminOnly.forEach(function (node) { node.classList.toggle("hidden", !admin); });
+    el.visualConfigSection.classList.toggle("user-visual-config", !admin);
+    el.backgroundSection.classList.toggle("hidden", !admin);
+    el.sponsorsSection.classList.toggle("hidden", !admin);
+    el.backgroundFolderIdInput.closest("label").classList.toggle("hidden", !admin);
+    el.sponsorsFolderIdInput.closest("label").classList.toggle("hidden", !admin);
+    el.enableCustomBackgroundInput.closest("label").classList.toggle("hidden", !admin);
+    el.accentPresetSelect.closest("label").classList.toggle("hidden", !admin);
+    el.accentExpandCardsInput.closest("label").classList.toggle("hidden", !admin);
     if (!admin && state.view === "config") setView("registro");
   }
 
@@ -560,52 +675,113 @@
 
   function toggleSidebar() {
     el.sidebar.classList.toggle("is-collapsed");
-    el.sidebarToggle.textContent = el.sidebar.classList.contains("is-collapsed") ? "Expandir" : "Colapsar";
+    document.querySelector(".app-shell").classList.toggle("is-sidebar-collapsed", el.sidebar.classList.contains("is-collapsed"));
+    updateSidebarToggle();
+  }
+
+  function updateSidebarToggle() {
+    const collapsed = el.sidebar.classList.contains("is-collapsed");
+    const icon = collapsed ? "❯" : "❮";
+    const label = collapsed ? "Expandir menu lateral" : "Colapsar menu lateral";
+    el.sidebarToggle.innerHTML = "<span class='sidebar-toggle-icon' aria-hidden='true'>" + icon + "</span>";
+    el.sidebarToggle.setAttribute("aria-label", label);
+    el.sidebarToggle.setAttribute("title", label);
+    el.sidebarToggle.setAttribute("aria-expanded", collapsed ? "false" : "true");
   }
 
   function toggleLoginDropdown(event) {
-    event.stopPropagation();
+    if (event) event.stopPropagation();
     const next = !el.loginDropdown.dataset.open;
-    if (next) el.loginDropdown.dataset.open = "true"; else delete el.loginDropdown.dataset.open;
-    el.loginDropdown.classList.toggle("hidden", !next);
+    if (next) {
+      el.loginDropdown.dataset.open = "true";
+      el.loginDropdown.classList.remove("hidden");
+      setAuthDebug("Abriendo panel de acceso…");
+      initGoogleAuth();
+      return;
+    }
+    delete el.loginDropdown.dataset.open;
+    el.loginDropdown.classList.add("hidden");
+  }
+
+  function closeLoginDropdown() {
+    delete el.loginDropdown.dataset.open;
+    el.loginDropdown.classList.add("hidden");
   }
 
   function handleClickOutside(event) {
     if (el.loginDropdown.classList.contains("hidden")) return;
-    if (!el.loginDropdown.contains(event.target) && !el.loginToggle.contains(event.target)) {
-      delete el.loginDropdown.dataset.open;
-      el.loginDropdown.classList.add("hidden");
+    const clickedProbe = el.authProbeBtn ? el.authProbeBtn.contains(event.target) : false;
+    if (!el.loginDropdown.contains(event.target) && !el.heroLoginBtn.contains(event.target) && !clickedProbe) {
+      closeLoginDropdown();
     }
   }
 
   function initGoogleAuth() {
     const clientId = String(config.googleClientId || "").trim();
-    if (!clientId || el.googleLoginButton.dataset.bound) return;
+    if (!clientId) {
+      setAuthDebug("Falta googleClientId en config.js");
+      return;
+    }
+    if (el.googleLoginButton.dataset.bound) {
+      setAuthDebug("Botón de Google listo.");
+      return;
+    }
+    setAuthDebug("Esperando Google Identity Services…");
     waitForGoogle().then(function () {
-      if (!window.google || !window.google.accounts || !window.google.accounts.id) return;
+      if (!window.google || !window.google.accounts || !window.google.accounts.id) {
+        setAuthDebug("GIS no está disponible en window.google");
+        return;
+      }
+      setAuthDebug("GIS cargado. Inicializando…");
       window.google.accounts.id.initialize({ client_id: clientId, callback: handleCredentialResponse });
+      el.googleLoginButton.innerHTML = "";
       window.google.accounts.id.renderButton(el.googleLoginButton, { theme: "outline", size: "large", shape: "pill", locale: "es" });
       el.googleLoginButton.dataset.bound = "true";
-    }).catch(function () {});
+      setAuthDebug("Botón de Google renderizado. Selecciona tu cuenta.");
+    }).catch(function (error) {
+      setAuthDebug("Error al cargar GIS: " + (error && error.message ? error.message : "desconocido"));
+    });
   }
 
   function handleCredentialResponse(response) {
-    const payload = decodeJwt(response && response.credential);
-    if (!payload || !payload.email) {
-      showMessage("No se pudo obtener la sesion", "error");
-      return;
+    try {
+      setAuthDebug("Respuesta recibida de Google. Validando credencial…");
+      const payload = decodeJwt(response && response.credential);
+      if (!payload || !payload.email) {
+        setAuthDebug("Google respondió, pero no llegó un correo válido.");
+        showMessage("No se pudo obtener la sesión", "error");
+        return;
+      }
+      state.loggedUser = { email: payload.email, name: payload.name || payload.email };
+      localStorage.setItem(config.sessionStorageKey || "matchmaking-session", JSON.stringify(state.loggedUser));
+      setAuthDebug("Sesión obtenida para: " + state.loggedUser.email);
+      refreshVisualSettingsForCurrentUser();
+      closeLoginDropdown();
+      renderAll();
+      showMessage("Sesión iniciada correctamente", "success");
+    } catch (error) {
+      console.error("Error al completar el inicio de sesión", error);
+      setAuthDebug("Error en callback de sesión: " + (error && error.message ? error.message : "desconocido"));
+      closeLoginDropdown();
+      showMessage("No se pudo completar el inicio de sesión", "error");
     }
-    state.loggedUser = { email: payload.email, name: payload.name || payload.email };
-    localStorage.setItem(config.sessionStorageKey || "matchmaking-session", JSON.stringify(state.loggedUser));
-    renderAll();
-    showMessage("Sesion iniciada correctamente", "success");
   }
 
   function logout() {
     state.loggedUser = null;
     localStorage.removeItem(config.sessionStorageKey || "matchmaking-session");
+    setAuthDebug("");
+    refreshVisualSettingsForCurrentUser();
+    closeLoginDropdown();
     renderAll();
-    showMessage("Sesion cerrada", "success");
+    showMessage("Sesión cerrada", "success");
+  }
+
+  function setAuthDebug(message) {
+    if (!el.authDebug) return;
+    const text = String(message || "").trim();
+    el.authDebug.textContent = text;
+    el.authDebug.classList.toggle("hidden", !text);
   }
 
   async function saveAdminConfig(event) {
@@ -619,7 +795,7 @@
     syncMatchingControls();
     persistData();
     renderBlockedDates();
-    showMessage("Configuracion actualizada", "success");
+    showMessage("Configuración actualizada", "success");
   }
 
   function syncMatchingControls() {
@@ -649,10 +825,78 @@
   function generateMatchesFlow() {
     syncMatchingControls();
     state.matches = generateMatches();
+    state.matchUi.selectedMatchId = state.matches[0] ? state.matches[0].id : "";
+    state.matchUi.draftAccepted = {};
     persistData();
     renderAll();
     setView("partidos");
     showMessage(state.matches.length ? "Partidos generados" : "No fue posible generar partidos", state.matches.length ? "success" : "error");
+  }
+
+  function buildDraftAccepted() {
+    const next = Object.assign({}, state.matchUi.draftAccepted || {});
+    state.matches.forEach(function (match) {
+      if (typeof next[match.id] !== "boolean") next[match.id] = Boolean(match.accepted);
+    });
+    return next;
+  }
+
+  function syncAcceptAllState() {
+    if (!state.matches.length) {
+      el.acceptAllMatches.checked = false;
+      el.acceptAllMatches.indeterminate = false;
+      return;
+    }
+    const values = state.matches.map(function (match) { return Boolean(state.matchUi.draftAccepted[match.id]); });
+    const allChecked = values.every(Boolean);
+    const anyChecked = values.some(Boolean);
+    el.acceptAllMatches.checked = allChecked;
+    el.acceptAllMatches.indeterminate = anyChecked && !allChecked;
+  }
+
+  function toggleAcceptAllMatches() {
+    const checked = Boolean(el.acceptAllMatches.checked);
+    state.matches.forEach(function (match) {
+      state.matchUi.draftAccepted[match.id] = checked;
+    });
+    el.acceptAllMatches.indeterminate = false;
+    renderMatches();
+    renderCompactMatches();
+  }
+
+  function saveAcceptedMatches() {
+    if (!state.matches.length) {
+      showMessage("No hay partidos para guardar", "error");
+      return;
+    }
+    state.matches = state.matches.map(function (match) {
+      return Object.assign({}, match, { accepted: Boolean(state.matchUi.draftAccepted[match.id]) });
+    });
+    persistData();
+    renderAll();
+    showMessage("Aceptaciones de partidos guardadas", "success");
+  }
+
+  function refreshVisualSettingsForCurrentUser() {
+    const source = state.baseSettings || state.settings;
+    const dynamic = Object.assign({}, source.dynamic || {});
+    state.settings = normalizeSettings({
+      backgroundFolderId: source.backgroundFolderId,
+      logosFolderId: source.logosFolderId,
+      sponsorsFolderId: source.sponsorsFolderId,
+      backgroundImage: source.backgroundImage,
+      glassOpacity: "",
+      enableCustomBackground: source.enableCustomBackground,
+      adminEmails: source.adminEmails,
+      accentPreset: source.accentPreset,
+      accentExpandCards: source.accentExpandCards,
+      dynamic: dynamic
+    }, state.loggedUser);
+    state.settings.dynamic = dynamic;
+    hydrateVisualInputs();
+    applyGlass();
+    applyAccentPreset();
+    applyBackground(state.selected.background || state.settings.backgroundImage);
   }
 
   function generateMatches() {
@@ -727,6 +971,8 @@
       return Object.assign({}, team, { id: team.id || createId("team" + index), ownerEmail: state.loggedUser && state.loggedUser.email ? state.loggedUser.email : (team.ownerEmail || "demo@ipv.mx") });
     }));
     state.matches = [];
+    state.matchUi.selectedMatchId = "";
+    state.matchUi.draftAccepted = {};
     persistData();
     renderAll();
     showMessage("Datos demo cargados", "success");
@@ -739,7 +985,8 @@
 
   function renderCarousel(urls, className, altText) {
     const safeUrls = urls.filter(Boolean);
-    const group = safeUrls.map(function (url, index) {
+    const visualUrls = safeUrls.length && safeUrls.length < 4 ? safeUrls.concat(safeUrls, safeUrls) : safeUrls;
+    const group = visualUrls.map(function (url, index) {
       return "<div class='" + className + "'><img src='" + esc(safeImageUrl(url)) + "' alt='" + esc((altText || "logo") + " " + String(index + 1)) + "' onerror=\"this.src='" + PLACEHOLDER + "'\"></div>";
     }).join("");
     return "<div class='carousel-track'><div class='carousel-group'>" + group + "</div><div class='carousel-group' aria-hidden='true'>" + group + "</div></div>";
@@ -749,28 +996,43 @@
     return (items || []).map(function (item) { return "<span class='alt-chip'>" + esc(item.label) + "</span>"; }).join("");
   }
 
+  function formatVenueLabel(match) {
+    return match.venue || "Por confirmar";
+  }
+
+  function getVenueLink(venue) {
+    const key = normalizeKey("sede" + String(venue || "").replace(/\s+/g, ""));
+    return (state.settings.dynamic && state.settings.dynamic[key]) || "";
+  }
+
   function renderMatchLogo(url, name) {
     if (url) return "<div class='match-team-logo'><img src='" + esc(safeImageUrl(url)) + "' alt='" + esc(name) + "' onerror=\"this.src='" + PLACEHOLDER + "'\"></div>";
     return "<div class='match-team-logo'>" + esc(initials(name)) + "</div>";
   }
 
-  function emptyGallery(text) { return "<div class='empty-shell'>" + esc(text || "No hay imagenes disponibles en la carpeta") + "</div>"; }
+  function emptyGallery(text) { return "<div class='empty-shell'>" + esc(text || "No hay imágenes disponibles en la carpeta") + "</div>"; }
   function skeletonGallery() { return "<div class='skeleton-card'></div><div class='skeleton-card'></div><div class='skeleton-card'></div>"; }
-  function requireSession() { if (state.loggedUser && state.loggedUser.email) return true; showMessage("Inicia sesion con Google para continuar", "error"); return false; }
+  function requireSession() { if (state.loggedUser && state.loggedUser.email) return true; showMessage("Inicia sesión con Google para continuar", "error"); return false; }
   function canEditTeam(team) { return isAdmin() || (state.loggedUser && team.ownerEmail === state.loggedUser.email); }
   function isAdmin() { const email = state.loggedUser && state.loggedUser.email ? state.loggedUser.email.toLowerCase() : ""; return Boolean(email && state.settings.adminEmails.indexOf(email) >= 0); }
   function isBlockedDate(date) { return state.adminConfig.blockedDates.some(function (item) { return item.date === date; }); }
 
-  function normalizeSettings(input) {
-    const local = readJson("ipv_visual_settings", {});
+  function normalizeSettings(input, loggedUser) {
+    const local = readJson(getUserVisualSettingsKey(loggedUser), {});
+    const configuredOpacity = String(input.glassOpacity || "").trim();
+    const defaultOpacity = getDefaultGlassOpacity(loggedUser, input.adminEmails);
+    const baseOpacity = configuredOpacity && configuredOpacity !== "0.6" ? configuredOpacity : defaultOpacity;
     return {
       backgroundFolderId: local.backgroundFolderId || input.backgroundFolderId || "",
       logosFolderId: local.logosFolderId || input.logosFolderId || "",
       sponsorsFolderId: local.sponsorsFolderId || input.sponsorsFolderId || "",
       backgroundImage: input.backgroundImage || "",
-      glassOpacity: String(local.glassOpacity || input.glassOpacity || "0.6"),
+      glassOpacity: String(local.glassOpacity || baseOpacity),
       enableCustomBackground: typeof local.enableCustomBackground === "boolean" ? local.enableCustomBackground : input.enableCustomBackground !== false,
-      adminEmails: parseEmails(input.adminEmails || [])
+      adminEmails: parseEmails(input.adminEmails || []),
+      accentPreset: local.accentPreset || input.accentPreset || "outline",
+      accentExpandCards: typeof local.accentExpandCards === "boolean" ? local.accentExpandCards : Boolean(input.accentExpandCards),
+      dynamic: Object.assign({}, input.dynamic || {})
     };
   }
 
@@ -793,7 +1055,7 @@
   function normalizeCapacity(input) {
     return (input || []).map(function (row) {
       if (Array.isArray(row)) return { venue: String(row[0] || ""), court: String(row[1] || ""), startTime: String(row[2] || ""), day: String(row[3] || ""), category: String(row[4] || ""), group: String(row[5] || "") };
-      return { venue: String(row["Sede"] || row.venue || ""), court: String(row["Cancha"] || row.court || ""), startTime: String(row["Horario_Inicial"] || row.startTime || ""), day: String(row["Dia"] || row.day || row.date || ""), category: String(row["Categoria"] || row.category || ""), group: String(row["Grupo"] || row.group || "") };
+      return { venue: String(row["Sede"] || row.venue || ""), court: String(row["Cancha"] || row.court || ""), startTime: String(row["Horario_Inicial"] || row.startTime || ""), day: String(row["Dia"] || row["Día"] || row.day || row.date || ""), category: String(row["Categoria"] || row["Categoría"] || row.category || ""), group: String(row["Grupo"] || row.group || "") };
     });
   }
 

@@ -7,14 +7,17 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=20260404-authfix3">
 </head>
 <body>
   <div id="appBackground" class="app-background"></div>
+  <button type="button" id="authProbeBtn" class="auth-probe-btn" onclick="return window.__openAuthPanel ? window.__openAuthPanel(event) : false;">Probar acceso Google</button>
   <div class="app-shell">
     <aside id="sidebar" class="sidebar card-glass">
       <div class="sidebar-brand">
-        <div class="brand-mark">iPV</div>
+        <div class="brand-mark">
+          <img src="assets/logo-ipv-oficial.png" alt="Logo iPV" class="brand-logo" onerror="this.style.display='none'; this.parentNode.textContent='π';">
+        </div>
         <div class="sidebar-brand-copy">
           <p class="eyebrow">Instituto Pretoriano</p>
           <strong>Panel Deportivo</strong>
@@ -24,11 +27,11 @@
       <button type="button" id="sidebarToggle" class="sidebar-toggle" aria-expanded="true">Colapsar</button>
 
       <nav class="sidebar-nav" aria-label="Navegacion principal">
-        <button type="button" class="nav-item is-active" data-view="registro">Registro de equipos</button>
-        <button type="button" class="nav-item" data-view="resumen">Resumen</button>
-        <button type="button" class="nav-item" data-view="equipos">Equipos</button>
-        <button type="button" class="nav-item" data-view="partidos">Partidos</button>
-        <button type="button" class="nav-item admin-only" data-view="config">Configuracion admin</button>
+        <button type="button" class="nav-item is-active" data-view="registro"><span class="nav-icon">▣</span><span class="nav-label">Registro de equipos</span></button>
+        <button type="button" class="nav-item" data-view="resumen"><span class="nav-icon">▤</span><span class="nav-label">Resumen</span></button>
+        <button type="button" class="nav-item" data-view="equipos"><span class="nav-icon">◫</span><span class="nav-label">Equipos</span></button>
+        <button type="button" class="nav-item" data-view="partidos"><span class="nav-icon">◪</span><span class="nav-label">Partidos</span></button>
+        <button type="button" class="nav-item admin-only" data-view="config"><span class="nav-icon">⚙</span><span class="nav-label">Configuración admin</span></button>
       </nav>
     </aside>
 
@@ -36,76 +39,89 @@
       <header class="topbar">
         <div class="topbar-copy">
           <p class="eyebrow">Temporada 2026</p>
-          <h1>Matchmaking deportivo listo para produccion</h1>
-          <p class="topbar-subtitle">Registro, visuales, sponsors, matching y administracion desde una sola experiencia SPA.</p>
+          <h1>Matchmaking deportivo listo para producción</h1>
+          <p class="topbar-subtitle">Registro, visuales, sponsors, matching y administración desde una sola experiencia SPA.</p>
         </div>
 
         <div class="topbar-actions">
-          <button type="button" id="loginToggle" class="btn btn-primary">Acceso con Google</button>
-          <div id="loginDropdown" class="login-dropdown hidden">
-            <p id="authStatus" class="muted">Inicia sesion para registrar o editar tus equipos.</p>
-            <div id="googleLoginButton"></div>
-            <div id="userSession" class="user-session hidden">
-              <strong id="userName">Usuario</strong>
-              <span id="userEmail" class="muted"></span>
-              <button type="button" id="logoutBtn" class="btn btn-ghost btn-small">Cerrar sesion</button>
-            </div>
-          </div>
+          <button type="button" id="loginToggle" class="btn btn-primary" onclick="return window.__openAuthPanel ? window.__openAuthPanel(event) : false;">Acceso con Google</button>
         </div>
       </header>
 
-      <section class="hero-grid">
-        <article class="hero-panel card-glass">
+      <section class="top-showcase">
+        <article class="hero-panel hero-side hero-sponsors card-glass">
           <div class="hero-panel-head">
             <div>
-              <p class="eyebrow">Patrocinadores</p>
-              <h2>Header dinamico</h2>
+              <p id="heroSponsorsEyebrow" class="eyebrow">Patrocinadores</p>
+              <h2 id="heroSponsorsTitle">Oficiales</h2>
             </div>
-            <span id="backendBadge" class="status-pill">Cargando</span>
+            <span id="backendBadge" class="status-pill hidden">Cargando</span>
           </div>
-          <p id="backendHint" class="muted">Conectando configuracion y galerias.</p>
+          <p id="backendHint" class="muted hidden">Conectando configuración y galerías.</p>
           <div id="sponsorsCarousel" class="sponsors-carousel">
             <div class="empty-inline">Sin sponsors registrados.</div>
           </div>
         </article>
 
-        <article class="hero-panel card-glass">
+        <article class="hero-panel hero-main card-glass">
           <div class="hero-panel-head">
             <div>
-              <p class="eyebrow">Resumen rapido</p>
-              <h2>Estado operativo</h2>
+              <p id="heroMainEyebrow" class="eyebrow">Temporada 2026</p>
+              <h2 id="heroMainTitle">Matchmaking</h2>
+            </div>
+            <div class="hero-login-slot">
+              <button type="button" id="heroLoginBtn" class="btn btn-primary hero-login-btn" onclick="return window.__openAuthPanel ? window.__openAuthPanel(event) : false;">Acceso con Google</button>
+              <div id="loginDropdown" class="login-dropdown hidden">
+                <p id="authStatus" class="muted">Inicia sesión para registrar o editar tus equipos.</p>
+                <div id="authDebug" class="auth-debug hidden" aria-live="polite"></div>
+                <div id="googleLoginButton"></div>
+                <div id="userSession" class="user-session hidden">
+                  <strong id="userName">Usuario</strong>
+                  <span id="userEmail" class="muted"></span>
+                  <button type="button" id="logoutBtn" class="btn btn-ghost btn-small">Cerrar sesión</button>
+                </div>
+              </div>
             </div>
           </div>
-          <div class="status-grid">
-            <div class="status-card">
-              <span>Equipos</span>
-              <strong id="teamCount">0</strong>
-            </div>
-            <div class="status-card">
-              <span>Cruces</span>
-              <strong id="overlapCount">0</strong>
-            </div>
-            <div class="status-card">
-              <span>Partidos</span>
-              <strong id="matchCount">0</strong>
-            </div>
-          </div>
-          <div class="hero-note">
-            Un registro de equipo y sus fechas representan la disponibilidad de ese equipo en esas fechas.
-          </div>
+          <p id="heroMainSubtitle" class="topbar-subtitle hidden">Matchmaking</p>
         </article>
 
-        <article class="hero-panel card-glass">
+        <article class="hero-panel hero-side hero-teams card-glass">
           <div class="hero-panel-head">
             <div>
-              <p class="eyebrow">Equipos</p>
-              <h2>Logos activos</h2>
+              <p id="heroTeamsEyebrow" class="eyebrow">Equipos</p>
+              <h2 id="heroTeamsTitle">Inscritos</h2>
             </div>
           </div>
           <div id="headerTeamLogos" class="team-logos-carousel">
             <div class="empty-inline">Sin logos registrados.</div>
           </div>
         </article>
+        <section class="summary-quick panel card-glass">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Resumen rápido</p>
+            <h2>Estado operativo</h2>
+          </div>
+        </div>
+        <div class="status-grid">
+          <div class="status-card">
+            <span>Equipos</span>
+            <strong id="teamCount">0</strong>
+          </div>
+          <div class="status-card">
+            <span>Cruces</span>
+            <strong id="overlapCount">0</strong>
+          </div>
+          <div class="status-card">
+            <span>Partidos</span>
+            <strong id="matchCount">0</strong>
+          </div>
+        </div>
+        <div class="hero-note">
+          Un registro de equipo y sus fechas representan la disponibilidad de ese equipo en esas fechas.
+        </div>
+        </section>
       </section>
 
       <main class="views-shell">
@@ -141,9 +157,9 @@
 
                 <div class="field-grid field-grid-3">
                   <label>
-                    Categoria
+                    Categoría
                     <select id="category" name="category" required>
-                      <option value="">Selecciona una categoria</option>
+                      <option value="">Selecciona una categoría</option>
                     </select>
                   </label>
                   <label>
@@ -154,7 +170,7 @@
                     Matching
                     <span class="toggle-field">
                       <input type="checkbox" id="participateInMatching" name="participateInMatching" checked>
-                      <span>Participar en matching automatico</span>
+                      <span>Participar en matching automático</span>
                     </span>
                   </label>
                 </div>
@@ -195,89 +211,111 @@
 
                 <div class="panel-actions">
                   <button type="submit" id="saveTeamBtn" class="btn btn-primary">Guardar equipo</button>
-                  <button type="button" id="cancelEditBtn" class="btn btn-ghost hidden">Cancelar edicion</button>
+                  <button type="button" id="cancelEditBtn" class="btn btn-ghost hidden">Cancelar edición</button>
                 </div>
               </form>
             </article>
 
-            <article class="panel card-glass">
+            <article class="panel card-glass visual-panel">
               <div class="panel-head">
                 <div>
                   <p class="eyebrow">Selector visual</p>
-                  <h2>Galerias desde Drive</h2>
+                  <h2>Galerías desde Drive</h2>
                 </div>
                 <button type="button" id="loadAllGalleriesBtn" class="btn btn-secondary btn-small">Cargar galerias</button>
               </div>
 
-              <div class="field-grid field-grid-3">
-                <label>
-                  Folder fondos
-                  <input type="text" id="backgroundFolderIdInput" placeholder="ID carpeta fondos">
-                </label>
-                <label>
-                  Folder logos
-                  <input type="text" id="logosFolderIdInput" placeholder="ID carpeta logos">
-                </label>
-                <label>
-                  Folder sponsors
-                  <input type="text" id="sponsorsFolderIdInput" placeholder="ID carpeta sponsors">
-                </label>
-              </div>
+              <div class="visual-layout">
+                <section id="visualConfigSection" class="gallery-section visual-config-section">
+                  <div class="gallery-head">
+                    <div>
+                      <h3>Configuración visual</h3>
+                      <p class="muted">Controles generales de apariencia.</p>
+                    </div>
+                  </div>
+                  <div class="field-grid field-grid-1">
+                    <label>
+                      Glass opacity
+                      <input type="range" id="glassOpacityInput" min="0.02" max="0.85" step="0.01">
+                    </label>
+                    <label class="admin-only">
+                      Carpeta de fondos
+                      <input type="text" id="backgroundFolderIdInput" placeholder="ID de la carpeta de fondos">
+                    </label>
+                    <label>
+                      Carpeta de logos
+                      <input type="text" id="logosFolderIdInput" placeholder="ID de la carpeta de logos">
+                    </label>
+                    <label class="admin-only">
+                      Carpeta de sponsors
+                      <input type="text" id="sponsorsFolderIdInput" placeholder="ID de la carpeta de sponsors">
+                    </label>
+                    <label class="admin-only">
+                      Fondo personalizado
+                      <span class="toggle-field">
+                        <input type="checkbox" id="enableCustomBackgroundInput">
+                        <span>Habilitar fondo desde Drive</span>
+                      </span>
+                    </label>
+                    <label class="admin-only">
+                      Preset de acento
+                      <select id="accentPresetSelect">
+                        <option value="outline">Dorado sobre oscuro</option>
+                        <option value="solid">Dorado solido</option>
+                        <option value="inverse">Invertido</option>
+                      </select>
+                    </label>
+                    <label class="admin-only">
+                      Expandir a tarjetas grandes
+                      <span class="toggle-field">
+                        <input type="checkbox" id="accentExpandCardsInput">
+                        <span>Aplicar preset a tarjetas grandes</span>
+                      </span>
+                    </label>
+                  </div>
+                </section>
 
-              <div class="field-grid field-grid-2">
-                <label>
-                  Glass opacity
-                  <input type="range" id="glassOpacityInput" min="0.2" max="0.85" step="0.05">
-                </label>
-                <label>
-                  Fondo personalizado
-                  <span class="toggle-field">
-                    <input type="checkbox" id="enableCustomBackgroundInput">
-                    <span>Habilitar fondo desde Drive</span>
-                  </span>
-                </label>
-              </div>
+                <section id="backgroundSection" class="gallery-section admin-only">
+                  <div class="gallery-head">
+                    <div>
+                      <h3>backgroundImage</h3>
+                      <p class="muted">Selector visual tipo galería.</p>
+                    </div>
+                    <div class="panel-actions">
+                      <button type="button" id="applyBackgroundBtn" class="btn btn-secondary btn-small">Aplicar imagen</button>
+                      <button type="button" id="reloadBackgroundGalleryBtn" class="btn btn-ghost btn-small">Actualizar</button>
+                    </div>
+                  </div>
+                  <div id="backgroundGalleryStatus" class="gallery-status muted">Esperando carpeta.</div>
+                  <div id="backgroundGallery" class="gallery-grid"></div>
+                </section>
 
-              <div class="gallery-section">
-                <div class="gallery-head">
-                  <div>
-                    <h3>backgroundImage</h3>
-                    <p class="muted">Selector visual tipo galeria.</p>
+                <section id="logosSection" class="gallery-section">
+                  <div class="gallery-head">
+                    <div>
+                      <h3>teamLogo</h3>
+                      <p class="muted">Haz click en un logo para asignarlo al equipo actual.</p>
+                    </div>
+                    <div class="panel-actions">
+                      <button type="button" id="applyTeamLogoBtn" class="btn btn-secondary btn-small">Usar como logo</button>
+                      <button type="button" id="reloadLogosGalleryBtn" class="btn btn-ghost btn-small">Actualizar</button>
+                    </div>
                   </div>
-                  <div class="panel-actions">
-                    <button type="button" id="applyBackgroundBtn" class="btn btn-secondary btn-small">Aplicar imagen</button>
-                    <button type="button" id="reloadBackgroundGalleryBtn" class="btn btn-ghost btn-small">Actualizar</button>
-                  </div>
-                </div>
-                <div id="backgroundGalleryStatus" class="gallery-status muted">Esperando carpeta.</div>
-                <div id="backgroundGallery" class="gallery-grid"></div>
-              </div>
+                  <div id="logosGalleryStatus" class="gallery-status muted">Esperando carpeta.</div>
+                  <div id="logosGallery" class="gallery-grid"></div>
+                </section>
 
-              <div class="gallery-section">
-                <div class="gallery-head">
-                  <div>
-                    <h3>teamLogo</h3>
-                    <p class="muted">Haz click en un logo para asignarlo al equipo actual.</p>
+                <section id="sponsorsSection" class="gallery-section admin-only">
+                  <div class="gallery-head">
+                    <div>
+                      <h3>sponsors</h3>
+                      <p class="muted">Selección múltiple para el carrusel superior.</p>
+                    </div>
+                    <button type="button" id="reloadSponsorsGalleryBtn" class="btn btn-ghost btn-small">Actualizar</button>
                   </div>
-                  <div class="panel-actions">
-                    <button type="button" id="applyTeamLogoBtn" class="btn btn-secondary btn-small">Usar como logo</button>
-                    <button type="button" id="reloadLogosGalleryBtn" class="btn btn-ghost btn-small">Actualizar</button>
-                  </div>
-                </div>
-                <div id="logosGalleryStatus" class="gallery-status muted">Esperando carpeta.</div>
-                <div id="logosGallery" class="gallery-grid"></div>
-              </div>
-
-              <div class="gallery-section">
-                <div class="gallery-head">
-                  <div>
-                    <h3>sponsors</h3>
-                    <p class="muted">Seleccion multiple para el carrusel superior.</p>
-                  </div>
-                  <button type="button" id="reloadSponsorsGalleryBtn" class="btn btn-ghost btn-small">Actualizar</button>
-                </div>
-                <div id="sponsorsGalleryStatus" class="gallery-status muted">Esperando carpeta.</div>
-                <div id="sponsorsGallery" class="gallery-grid"></div>
+                  <div id="sponsorsGalleryStatus" class="gallery-status muted">Esperando carpeta.</div>
+                  <div id="sponsorsGallery" class="gallery-grid"></div>
+                </section>
               </div>
             </article>
           </div>
@@ -298,7 +336,7 @@
                     <tr>
                       <th>Equipo</th>
                       <th>Rama</th>
-                      <th>Categoria</th>
+                      <th>Categoría</th>
                       <th>Fecha</th>
                       <th>Horario</th>
                       <th>Logo</th>
@@ -306,7 +344,7 @@
                     </tr>
                   </thead>
                   <tbody id="teamsTableBody">
-                    <tr><td colspan="7" class="empty-state">Todavia no hay equipos registrados.</td></tr>
+                    <tr><td colspan="7" class="empty-state">Todavía no hay equipos registrados.</td></tr>
                   </tbody>
                 </table>
               </div>
@@ -320,7 +358,7 @@
                 </div>
               </div>
               <div id="overlapsList" class="cards-list">
-                <div class="empty-state">Aun no se detectan coincidencias.</div>
+                <div class="empty-state">Aún no se detectan coincidencias.</div>
               </div>
             </article>
           </div>
@@ -352,17 +390,23 @@
                 </div>
                 <div class="panel-actions">
                   <button type="button" id="generateMatchesBtn" class="btn btn-secondary">Generar partidos</button>
+                  <button type="button" id="saveMatchesBtn" class="btn btn-primary btn-small">Guardar</button>
                 </div>
               </div>
-
-              <div class="matches-head">
-                <span>Partido sugerido</span>
-                <span>Rival</span>
-                <span>Fecha</span>
-                <span>Sede</span>
+              <div class="matches-toolbar">
+                <label class="accept-all">
+                  <input type="checkbox" id="acceptAllMatches">
+                  <span>Aceptar todas</span>
+                </label>
+                <div class="matches-head">
+                  <span>Partido sugerido</span>
+                  <span>Rival</span>
+                  <span>Fecha</span>
+                  <span>Sede</span>
+                </div>
               </div>
               <div id="matchesList" class="matches-list">
-                <div class="empty-state">Todavia no se han generado partidos.</div>
+                <div class="empty-state">Todavía no se han generado partidos.</div>
               </div>
             </article>
 
@@ -370,11 +414,11 @@
               <div class="panel-head">
                 <div>
                   <p class="eyebrow">Vista alterna</p>
-                  <h2>Listado compacto</h2>
+                  <h2>Detalle del partido</h2>
                 </div>
               </div>
               <div id="viewPartidosList" class="cards-list">
-                <div class="empty-state">Sin partidos sugeridos.</div>
+                <div class="empty-state">Selecciona un partido para ver su detalle.</div>
               </div>
             </article>
           </div>
@@ -386,7 +430,7 @@
               <div class="panel-head">
                 <div>
                   <p class="eyebrow">Admin</p>
-                  <h2>Configuracion compacta</h2>
+                  <h2>Configuración compacta</h2>
                 </div>
               </div>
 
@@ -428,7 +472,7 @@
                     </select>
                   </label>
                   <label>
-                    Numero de grupos
+                    Número de grupos
                     <input type="number" id="groupCount" min="2" max="8" step="1" value="3">
                   </label>
                   <label>
@@ -443,7 +487,7 @@
                 <div class="panel-actions">
                   <button type="button" id="addBlockedDateBtn" class="btn btn-ghost btn-small">Agregar fecha</button>
                   <button type="button" id="addRangeBtn" class="btn btn-ghost btn-small">Agregar rango</button>
-                  <button type="submit" class="btn btn-primary">Guardar configuracion</button>
+                  <button type="submit" class="btn btn-primary">Guardar configuración</button>
                 </div>
               </form>
             </article>
@@ -467,8 +511,211 @@
     </div>
   </div>
 
-  <script src="config.js"></script>
+  <script src="config.js?v=20260404-authfix3"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <script src="app.js"></script>
+  <script src="app.js?v=20260404-authfix3"></script>
+  <script>
+  (function () {
+    const sessionKey = (window.APP_CONFIG && window.APP_CONFIG.sessionStorageKey) || "ipv-matchmaking-session";
+    let googleReady = false;
+
+    function byId(id) {
+      return document.getElementById(id);
+    }
+
+    function getSession() {
+      try {
+        const raw = localStorage.getItem(sessionKey);
+        return raw ? JSON.parse(raw) : null;
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function setDebug(message) {
+      const debug = byId("authDebug");
+      if (!debug) return;
+      const text = String(message || "").trim();
+      debug.textContent = text;
+      debug.classList.toggle("hidden", !text);
+    }
+
+    function decodeJwt(token) {
+      try {
+        const payload = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+        return JSON.parse(decodeURIComponent(atob(payload).split("").map(function (char) {
+          return "%" + ("00" + char.charCodeAt(0).toString(16)).slice(-2);
+        }).join("")));
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function updateButtons() {
+      const user = getSession();
+      const hero = byId("heroLoginBtn");
+      const probe = byId("authProbeBtn");
+      const hiddenToggle = byId("loginToggle");
+      if (hero) {
+        hero.classList.toggle("is-google-icon", Boolean(user && user.email));
+        hero.innerHTML = user && user.email ? "<span class='google-mark' aria-hidden='true'>G</span>" : "Acceso con Google";
+      }
+      if (probe) {
+        probe.textContent = user && user.email ? "Panel de cuenta Google" : "Probar acceso Google";
+      }
+      if (hiddenToggle) {
+        hiddenToggle.textContent = user && user.email ? "Cuenta de Google" : "Acceso con Google";
+      }
+    }
+
+    function closeAuthPanel() {
+      const panel = byId("loginDropdown");
+      if (!panel) return;
+      panel.classList.add("hidden");
+      panel.style.display = "none";
+      delete panel.dataset.open;
+    }
+
+    function waitForGoogle() {
+      return new Promise(function (resolve, reject) {
+        let tries = 40;
+        (function check() {
+          if (window.google && window.google.accounts && window.google.accounts.id) return resolve();
+          tries -= 1;
+          if (!tries) return reject(new Error("GIS no disponible"));
+          setTimeout(check, 250);
+        })();
+      });
+    }
+
+    function handleCredential(response) {
+      setDebug("Respuesta recibida de Google. Validando credencial…");
+      const payload = decodeJwt(response && response.credential);
+      if (!payload || !payload.email) {
+        setDebug("Google respondió, pero no llegó un correo válido.");
+        return;
+      }
+      localStorage.setItem(sessionKey, JSON.stringify({
+        email: payload.email,
+        name: payload.name || payload.email
+      }));
+      setDebug("Sesión obtenida para: " + payload.email);
+      updateButtons();
+      window.location.reload();
+    }
+
+    function renderGoogleButton() {
+      const holder = byId("googleLoginButton");
+      const clientId = String((window.APP_CONFIG && window.APP_CONFIG.googleClientId) || "").trim();
+      if (!holder) return;
+      if (!clientId) {
+        setDebug("Falta googleClientId en config.js");
+        return;
+      }
+      setDebug("Esperando Google Identity Services…");
+      waitForGoogle().then(function () {
+        setDebug("GIS cargado. Inicializando…");
+        if (!googleReady) {
+          window.google.accounts.id.initialize({
+            client_id: clientId,
+            callback: handleCredential
+          });
+          googleReady = true;
+        }
+        holder.innerHTML = "";
+        window.google.accounts.id.renderButton(holder, {
+          theme: "outline",
+          size: "large",
+          shape: "pill",
+          locale: "es"
+        });
+        setDebug("Botón de Google renderizado. Selecciona tu cuenta.");
+      }).catch(function (error) {
+        setDebug("Error al cargar GIS: " + (error && error.message ? error.message : "desconocido"));
+      });
+    }
+
+    function renderPanel() {
+      const user = getSession();
+      const status = byId("authStatus");
+      const session = byId("userSession");
+      const userName = byId("userName");
+      const userEmail = byId("userEmail");
+      const googleButton = byId("googleLoginButton");
+      if (!status || !session || !googleButton) return;
+      if (user && user.email) {
+        setDebug("");
+        status.textContent = "Sesión activa. Puedes editar tus equipos.";
+        session.classList.remove("hidden");
+        if (userName) userName.textContent = user.name || "Usuario";
+        if (userEmail) userEmail.textContent = user.email || "";
+        googleButton.classList.add("hidden");
+        return;
+      }
+      status.textContent = "Inicia sesión para registrar o editar tus equipos.";
+      session.classList.add("hidden");
+      googleButton.classList.remove("hidden");
+      renderGoogleButton();
+    }
+
+    function handleLogout(event) {
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        if (typeof event.stopImmediatePropagation === "function") event.stopImmediatePropagation();
+      }
+      localStorage.removeItem(sessionKey);
+      updateButtons();
+      closeAuthPanel();
+      window.location.reload();
+      return false;
+    }
+
+    function openAuthPanel(event) {
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        if (typeof event.stopImmediatePropagation === "function") event.stopImmediatePropagation();
+      }
+      const panel = byId("loginDropdown");
+      if (!panel) return false;
+      const isOpen = panel.dataset.open === "true";
+      if (isOpen) {
+        closeAuthPanel();
+        return false;
+      }
+      panel.dataset.open = "true";
+      panel.classList.remove("hidden");
+      panel.style.display = "block";
+      panel.style.position = "fixed";
+      panel.style.top = "110px";
+      panel.style.right = "24px";
+      panel.style.zIndex = "99999";
+      renderPanel();
+      return false;
+    }
+
+    function bindStandaloneAuth() {
+      updateButtons();
+      const logoutBtn = byId("logoutBtn");
+      if (logoutBtn) {
+        logoutBtn.onclick = handleLogout;
+      }
+      document.addEventListener("click", function (event) {
+        const panel = byId("loginDropdown");
+        const hero = byId("heroLoginBtn");
+        const probe = byId("authProbeBtn");
+        if (!panel || panel.classList.contains("hidden")) return;
+        if (panel.contains(event.target)) return;
+        if (hero && hero.contains(event.target)) return;
+        if (probe && probe.contains(event.target)) return;
+        closeAuthPanel();
+      });
+    }
+
+    window.__openAuthPanel = openAuthPanel;
+    document.addEventListener("DOMContentLoaded", bindStandaloneAuth);
+  })();
+  </script>
 </body>
 </html>

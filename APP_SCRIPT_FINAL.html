@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>iPv Matchmaking Deportivo</title>
+  <title>iPV Matchmaking Deportivo</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
@@ -25,7 +25,7 @@
   --success: #71d9a8;
   --danger: #ff8f8f;
   --shadow: 0 18px 50px rgba(3, 8, 25, 0.28);
-  --glass-opacity: 0.6;
+  --glass-opacity: 0.2;
   --radius-xl: 28px;
   --radius-lg: 22px;
   --radius-md: 16px;
@@ -103,6 +103,10 @@ img {
   padding: 18px;
 }
 
+.app-shell.is-sidebar-collapsed {
+  grid-template-columns: 92px minmax(0, 1fr);
+}
+
 .sidebar {
   position: sticky;
   top: 18px;
@@ -120,10 +124,42 @@ img {
   width: 92px;
 }
 
-.sidebar.is-collapsed .sidebar-brand-copy,
-.sidebar.is-collapsed .nav-item,
+.sidebar.is-collapsed .sidebar-brand-copy {
+  display: none;
+}
+
 .sidebar.is-collapsed .sidebar-toggle {
-  font-size: 0;
+  font-size: inherit;
+}
+
+.sidebar.is-collapsed .sidebar-brand {
+  justify-content: center;
+  min-height: 58px;
+}
+
+.sidebar.is-collapsed .brand-mark {
+  margin: 0 auto;
+}
+
+.sidebar.is-collapsed .brand-logo {
+  display: none;
+}
+
+.sidebar.is-collapsed .brand-mark::after {
+  content: "π";
+  font-family: "Rajdhani", sans-serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #172038;
+}
+
+.sidebar.is-collapsed .nav-label {
+  display: none;
+}
+
+.sidebar.is-collapsed .nav-item {
+  justify-content: center;
+  padding: 0;
 }
 
 .sidebar-brand {
@@ -144,6 +180,13 @@ img {
   font-family: "Rajdhani", sans-serif;
   font-size: 1.4rem;
   font-weight: 700;
+  overflow: hidden;
+}
+
+.brand-logo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .eyebrow {
@@ -175,6 +218,14 @@ img {
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.08);
   color: var(--text);
+  display: grid;
+  place-items: center;
+}
+
+.sidebar-toggle-icon {
+  font-size: 1.2rem;
+  line-height: 1;
+  font-weight: 700;
 }
 
 .sidebar-nav {
@@ -183,6 +234,9 @@ img {
 }
 
 .nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   width: 100%;
   min-height: 48px;
   padding: 0 16px;
@@ -191,6 +245,12 @@ img {
   background: transparent;
   color: var(--text);
   font-weight: 700;
+}
+
+.nav-icon {
+  width: 20px;
+  text-align: center;
+  flex: 0 0 auto;
 }
 
 .nav-item.is-active {
@@ -221,12 +281,17 @@ img {
 
 .topbar {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 18px;
-  padding: 18px 22px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid var(--line);
+  justify-content: flex-end;
+  gap: 0;
+  padding: 0;
+  min-height: 0;
+  background: transparent;
+  border: 0;
+}
+
+.topbar-copy,
+#loginToggle {
+  display: none;
 }
 
 .topbar-copy h1,
@@ -249,12 +314,18 @@ img {
 
 .topbar-actions {
   position: relative;
+  min-height: 0;
+}
+
+.hero-login-slot {
+  position: relative;
+  flex: 0 0 auto;
 }
 
 .login-dropdown {
-  position: absolute;
-  right: 0;
-  top: calc(100% + 10px);
+  position: fixed;
+  top: 108px;
+  right: 28px;
   width: min(360px, calc(100vw - 40px));
   padding: 18px;
   background: rgba(17, 24, 54, 0.82);
@@ -263,7 +334,7 @@ img {
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   box-shadow: var(--shadow);
-  z-index: 10;
+  z-index: 9999;
 }
 
 .user-session {
@@ -273,6 +344,37 @@ img {
   padding: 14px;
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.08);
+}
+
+.auth-debug {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #fff2c8;
+  font-size: 0.85rem;
+  line-height: 1.35;
+  white-space: pre-wrap;
+}
+
+.auth-probe-btn {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 10000;
+  min-height: 50px;
+  padding: 0 18px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  background: linear-gradient(145deg, rgba(40, 198, 120, 0.96), rgba(14, 125, 78, 0.96));
+  color: #f5fff8;
+  font-weight: 800;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.28);
+}
+
+.auth-probe-btn:hover {
+  transform: translateY(-1px);
 }
 
 .btn {
@@ -311,10 +413,62 @@ img {
   transform: translateY(-1px);
 }
 
-.hero-grid {
+.top-showcase {
   display: grid;
-  grid-template-columns: 1.3fr 1fr 0.9fr;
-  gap: 18px;
+  grid-template-columns: minmax(250px, 0.95fr) minmax(480px, 1.8fr) minmax(230px, 0.95fr);
+  grid-template-areas:
+    "sponsors hero teams"
+    "sponsors summary teams";
+  gap: 12px;
+  align-items: start;
+}
+
+.hero-side,
+.hero-main {
+  min-height: 0;
+}
+
+.hero-login-btn {
+  min-width: 158px;
+  min-height: 42px;
+}
+
+.hero-login-btn.is-google-icon {
+  min-width: 56px;
+  width: 56px;
+  height: 56px;
+  padding: 0;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(145deg, #fff3c8, #ffd452);
+  border: 1px solid rgba(255, 244, 198, 0.72);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+}
+
+.google-mark {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  font-weight: 900;
+  font-size: 1.6rem;
+  line-height: 1;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(45deg, #4285f4 0 25%, #34a853 25% 50%, #fbbc05 50% 75%, #ea4335 75% 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.hero-main h2 {
+  font-size: clamp(2.1rem, 4vw, 3.45rem);
+  line-height: 0.95;
+}
+
+.hero-side h2 {
+  font-size: clamp(1.15rem, 2vw, 1.8rem);
+  color: var(--text);
 }
 
 .hero-panel,
@@ -324,6 +478,10 @@ img {
   overflow: hidden;
 }
 
+.hero-panel {
+  padding: 14px 16px;
+}
+
 .hero-panel-head,
 .panel-head,
 .gallery-head {
@@ -331,7 +489,32 @@ img {
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
+}
+
+.hero-side {
+  display: grid;
+  align-content: start;
+  align-self: start;
+  height: fit-content;
+}
+
+.hero-sponsors {
+  grid-area: sponsors;
+}
+
+.hero-main {
+  grid-area: hero;
+}
+
+.hero-teams {
+  grid-area: teams;
+}
+.hero-main {
+  min-height: 122px;
+  overflow: visible;
+  position: relative;
+  z-index: 20;
 }
 
 .status-pill,
@@ -357,40 +540,94 @@ img {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
+  align-items: stretch;
+}
+
+.summary-quick {
+  grid-area: summary;
+  display: grid;
+  gap: 6px;
+  padding: 8px 10px;
+  align-self: start;
+}
+
+.summary-quick .panel-head {
+  margin-bottom: 0;
+}
+
+.summary-quick .status-card {
+  min-height: 42px;
+  padding: 6px 8px;
+  border-radius: 14px;
+}
+
+.summary-quick .hero-note {
+  margin-top: 0;
+  padding: 6px 8px;
+  border-radius: 14px;
+  font-size: 0.7rem;
+  line-height: 1.3;
+}
+
+.summary-quick h2 {
+  font-size: 0.98rem;
+}
+
+.summary-quick .eyebrow {
+  margin-bottom: 2px;
+}
+
+.summary-quick .status-card span {
+  font-size: 0.72rem;
+}
+
+.summary-quick .status-card strong {
+  font-size: 1.1rem;
 }
 
 .status-card {
   padding: 14px;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, calc(var(--glass-opacity) * 0.42));
   border: 1px solid rgba(255, 255, 255, 0.12);
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  text-align: center;
+  min-height: 124px;
 }
 
 .status-card span {
   color: var(--muted);
-  font-size: 0.85rem;
+  font-size: 0.78rem;
 }
 
 .status-card strong {
   display: block;
-  margin-top: 6px;
+  margin-top: 2px;
   font-family: "Rajdhani", sans-serif;
-  font-size: 2rem;
+  font-size: 1.35rem;
+  line-height: 1;
 }
 
 .hero-note {
   margin-top: 16px;
   padding: 14px 16px;
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, calc(var(--glass-opacity) * 0.48));
   color: rgba(255, 255, 255, 0.9);
 }
 
 .sponsors-carousel,
 .team-logos-carousel {
   overflow: hidden;
-  min-height: 74px;
+  min-height: 108px;
   width: 100%;
   min-width: 0;
+  position: relative;
+}
+
+.hero-side .hero-panel-head {
+  margin-bottom: 8px;
 }
 
 .carousel-track {
@@ -425,9 +662,9 @@ img {
 .sponsor-logo,
 .team-logo-item {
   flex: 0 0 auto;
-  width: 110px;
-  height: 60px;
-  padding: 8px;
+  width: 128px;
+  height: 92px;
+  padding: 6px;
   border-radius: 16px;
   display: grid;
   place-items: center;
@@ -447,6 +684,18 @@ img {
   font-family: "Rajdhani", sans-serif;
   font-size: 1.1rem;
   font-weight: 700;
+}
+
+.hero-panel .empty-inline,
+.team-logos-carousel .empty-inline,
+.sponsors-carousel .empty-inline {
+  display: block;
+  padding: 8px 0;
+}
+
+.hero-main .topbar-subtitle {
+  margin: 0;
+  font-size: 0.98rem;
 }
 
 .views-shell {
@@ -479,6 +728,24 @@ img {
 
 .view-grid-main {
   grid-template-columns: 1.2fr 1fr;
+}
+
+.visual-layout {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.field-grid-1 {
+  grid-template-columns: 1fr;
+}
+
+.visual-panel .gallery-section {
+  background: rgba(255, 255, 255, 0.06);
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  align-content: start;
 }
 
 .field-grid {
@@ -715,6 +982,77 @@ th {
   letter-spacing: 0.08em;
 }
 
+.matches-toolbar {
+  display: grid;
+  gap: 14px;
+}
+
+.accept-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  width: fit-content;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.accept-all input,
+.match-summary-action input,
+.match-detail-actions input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  padding: 0;
+}
+
+.match-summary {
+  display: grid;
+  grid-template-columns: minmax(120px, 0.8fr) minmax(220px, 1.2fr) minmax(140px, 1fr) minmax(180px, 0.9fr) auto;
+  gap: 16px;
+  align-items: center;
+  padding: 16px 18px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 18px;
+  cursor: pointer;
+}
+
+.match-summary.is-active {
+  border-color: rgba(251, 180, 0, 0.55);
+  box-shadow: 0 0 0 1px rgba(251, 180, 0, 0.35);
+}
+
+.match-summary-party,
+.match-summary-opponent {
+  display: grid;
+  gap: 6px;
+}
+
+.match-summary-title {
+  font-weight: 800;
+}
+
+.match-summary-meta {
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.match-summary-action {
+  justify-self: end;
+}
+
+.match-link {
+  color: #ffe7a0;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.match-link:hover {
+  text-decoration: underline;
+}
+
 .match-card,
 .team-card,
 .overlap-card {
@@ -726,6 +1064,11 @@ th {
 .match-card {
   display: grid;
   gap: 14px;
+}
+
+.match-detail-card {
+  display: grid;
+  gap: 18px;
 }
 
 .match-main {
@@ -793,6 +1136,81 @@ th {
   padding-left: 84px;
 }
 
+.match-detail-header {
+  display: grid;
+  grid-template-columns: 84px 1fr 90px 1fr 1fr;
+  gap: 18px;
+  align-items: center;
+}
+
+.match-detail-team {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.match-detail-team strong {
+  font-size: 1.12rem;
+  line-height: 1.2;
+}
+
+.match-detail-team .match-team-logo {
+  width: 74px;
+  height: 74px;
+}
+
+.match-detail-vs {
+  justify-self: center;
+  font-family: "Rajdhani", sans-serif;
+  font-size: 2.2rem;
+  font-weight: 700;
+}
+
+.match-detail-side {
+  display: grid;
+  gap: 6px;
+}
+
+.match-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.match-detail-block {
+  display: grid;
+  gap: 6px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.match-detail-label {
+  color: rgba(245, 247, 255, 0.72);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.match-detail-value {
+  font-weight: 700;
+}
+
+.match-detail-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.match-detail-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .match-alt-list {
   display: flex;
   flex-wrap: wrap;
@@ -814,6 +1232,29 @@ th {
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
 }
 
+.team-card {
+  display: grid;
+  gap: 18px;
+}
+
+.team-card-head {
+  display: grid;
+  grid-template-columns: 1fr 86px;
+  gap: 16px;
+  align-items: start;
+}
+
+.team-card-logo-wrap {
+  width: 86px;
+  height: 86px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  display: grid;
+  place-items: center;
+  justify-self: end;
+}
+
 .team-card h3,
 .overlap-card h3 {
   margin: 0 0 8px;
@@ -826,7 +1267,17 @@ th {
   height: 68px;
   border-radius: 18px;
   object-fit: contain;
-  background: rgba(255, 255, 255, 0.12);
+  background: transparent;
+}
+
+.team-card-logo-fallback {
+  width: 68px;
+  height: 68px;
+  display: grid;
+  place-items: center;
+  font-family: "Rajdhani", sans-serif;
+  font-size: 1.45rem;
+  font-weight: 700;
 }
 
 .empty-state,
@@ -841,9 +1292,39 @@ th {
   font-size: 0.82rem;
 }
 
+[data-accent-preset="solid"] .status-pill,
+[data-accent-preset="solid"] .tag {
+  color: #172038;
+  background: rgba(255, 231, 160, 0.96);
+}
+
+[data-accent-preset="inverse"] .status-pill,
+[data-accent-preset="inverse"] .tag {
+  background: rgba(22, 32, 56, 0.92);
+  border-color: rgba(255, 231, 160, 0.45);
+}
+
+[data-accent-expand="true"] .hero-panel,
+[data-accent-expand="true"] .panel {
+  border-color: rgba(251, 180, 0, 0.22);
+}
+
 @media (max-width: 1180px) {
-  .hero-grid,
+  .top-showcase,
   .view-grid-main {
+    grid-template-columns: 1fr;
+  }
+
+  .top-showcase {
+    grid-template-areas:
+      "hero"
+      "summary"
+      "sponsors"
+      "teams";
+  }
+
+  .visual-layout,
+  .match-detail-grid {
     grid-template-columns: 1fr;
   }
 }
@@ -864,6 +1345,7 @@ th {
   .panel-head,
   .gallery-head,
   .match-main,
+  .match-detail-header,
   .matches-head,
   .field-grid-2,
   .field-grid-3,
@@ -882,6 +1364,15 @@ th {
 
   .matches-head {
     display: none;
+  }
+
+  .match-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .match-detail-footer {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
 
@@ -906,10 +1397,13 @@ th {
 </head>
 <body>
   <div id="appBackground" class="app-background"></div>
+  <button type="button" id="authProbeBtn" class="auth-probe-btn" onclick="return window.__openAuthPanel ? window.__openAuthPanel(event) : false;">Probar acceso Google</button>
   <div class="app-shell">
     <aside id="sidebar" class="sidebar card-glass">
       <div class="sidebar-brand">
-        <div class="brand-mark">iPV</div>
+        <div class="brand-mark">
+          <img src="assets/logo-ipv-oficial.png" alt="Logo iPV" class="brand-logo" onerror="this.style.display='none'; this.parentNode.textContent='π';">
+        </div>
         <div class="sidebar-brand-copy">
           <p class="eyebrow">Instituto Pretoriano</p>
           <strong>Panel Deportivo</strong>
@@ -919,11 +1413,11 @@ th {
       <button type="button" id="sidebarToggle" class="sidebar-toggle" aria-expanded="true">Colapsar</button>
 
       <nav class="sidebar-nav" aria-label="Navegacion principal">
-        <button type="button" class="nav-item is-active" data-view="registro">Registro de equipos</button>
-        <button type="button" class="nav-item" data-view="resumen">Resumen</button>
-        <button type="button" class="nav-item" data-view="equipos">Equipos</button>
-        <button type="button" class="nav-item" data-view="partidos">Partidos</button>
-        <button type="button" class="nav-item admin-only" data-view="config">Configuracion admin</button>
+        <button type="button" class="nav-item is-active" data-view="registro"><span class="nav-icon">▣</span><span class="nav-label">Registro de equipos</span></button>
+        <button type="button" class="nav-item" data-view="resumen"><span class="nav-icon">▤</span><span class="nav-label">Resumen</span></button>
+        <button type="button" class="nav-item" data-view="equipos"><span class="nav-icon">◫</span><span class="nav-label">Equipos</span></button>
+        <button type="button" class="nav-item" data-view="partidos"><span class="nav-icon">◪</span><span class="nav-label">Partidos</span></button>
+        <button type="button" class="nav-item admin-only" data-view="config"><span class="nav-icon">⚙</span><span class="nav-label">Configuración admin</span></button>
       </nav>
     </aside>
 
@@ -931,76 +1425,89 @@ th {
       <header class="topbar">
         <div class="topbar-copy">
           <p class="eyebrow">Temporada 2026</p>
-          <h1>Matchmaking deportivo listo para produccion</h1>
-          <p class="topbar-subtitle">Registro, visuales, sponsors, matching y administracion desde una sola experiencia SPA.</p>
+          <h1>Matchmaking deportivo listo para producción</h1>
+          <p class="topbar-subtitle">Registro, visuales, sponsors, matching y administración desde una sola experiencia SPA.</p>
         </div>
 
         <div class="topbar-actions">
-          <button type="button" id="loginToggle" class="btn btn-primary">Acceso con Google</button>
-          <div id="loginDropdown" class="login-dropdown hidden">
-            <p id="authStatus" class="muted">Inicia sesion para registrar o editar tus equipos.</p>
-            <div id="googleLoginButton"></div>
-            <div id="userSession" class="user-session hidden">
-              <strong id="userName">Usuario</strong>
-              <span id="userEmail" class="muted"></span>
-              <button type="button" id="logoutBtn" class="btn btn-ghost btn-small">Cerrar sesion</button>
-            </div>
-          </div>
+          <button type="button" id="loginToggle" class="btn btn-primary" onclick="return window.__openAuthPanel ? window.__openAuthPanel(event) : false;">Acceso con Google</button>
         </div>
       </header>
 
-      <section class="hero-grid">
-        <article class="hero-panel card-glass">
+      <section class="top-showcase">
+        <article class="hero-panel hero-side hero-sponsors card-glass">
           <div class="hero-panel-head">
             <div>
-              <p class="eyebrow">Patrocinadores</p>
-              <h2>Header dinamico</h2>
+              <p id="heroSponsorsEyebrow" class="eyebrow">Patrocinadores</p>
+              <h2 id="heroSponsorsTitle">Oficiales</h2>
             </div>
-            <span id="backendBadge" class="status-pill">Cargando</span>
+            <span id="backendBadge" class="status-pill hidden">Cargando</span>
           </div>
-          <p id="backendHint" class="muted">Conectando configuracion y galerias.</p>
+          <p id="backendHint" class="muted hidden">Conectando configuración y galerías.</p>
           <div id="sponsorsCarousel" class="sponsors-carousel">
             <div class="empty-inline">Sin sponsors registrados.</div>
           </div>
         </article>
 
-        <article class="hero-panel card-glass">
+        <article class="hero-panel hero-main card-glass">
           <div class="hero-panel-head">
             <div>
-              <p class="eyebrow">Resumen rapido</p>
-              <h2>Estado operativo</h2>
+              <p id="heroMainEyebrow" class="eyebrow">Temporada 2026</p>
+              <h2 id="heroMainTitle">Matchmaking</h2>
+            </div>
+            <div class="hero-login-slot">
+              <button type="button" id="heroLoginBtn" class="btn btn-primary hero-login-btn" onclick="return window.__openAuthPanel ? window.__openAuthPanel(event) : false;">Acceso con Google</button>
+              <div id="loginDropdown" class="login-dropdown hidden">
+                <p id="authStatus" class="muted">Inicia sesión para registrar o editar tus equipos.</p>
+                <div id="authDebug" class="auth-debug hidden" aria-live="polite"></div>
+                <div id="googleLoginButton"></div>
+                <div id="userSession" class="user-session hidden">
+                  <strong id="userName">Usuario</strong>
+                  <span id="userEmail" class="muted"></span>
+                  <button type="button" id="logoutBtn" class="btn btn-ghost btn-small">Cerrar sesión</button>
+                </div>
+              </div>
             </div>
           </div>
-          <div class="status-grid">
-            <div class="status-card">
-              <span>Equipos</span>
-              <strong id="teamCount">0</strong>
-            </div>
-            <div class="status-card">
-              <span>Cruces</span>
-              <strong id="overlapCount">0</strong>
-            </div>
-            <div class="status-card">
-              <span>Partidos</span>
-              <strong id="matchCount">0</strong>
-            </div>
-          </div>
-          <div class="hero-note">
-            Un registro de equipo y sus fechas representan la disponibilidad de ese equipo en esas fechas.
-          </div>
+          <p id="heroMainSubtitle" class="topbar-subtitle hidden">Matchmaking</p>
         </article>
 
-        <article class="hero-panel card-glass">
+        <article class="hero-panel hero-side hero-teams card-glass">
           <div class="hero-panel-head">
             <div>
-              <p class="eyebrow">Equipos</p>
-              <h2>Logos activos</h2>
+              <p id="heroTeamsEyebrow" class="eyebrow">Equipos</p>
+              <h2 id="heroTeamsTitle">Inscritos</h2>
             </div>
           </div>
           <div id="headerTeamLogos" class="team-logos-carousel">
             <div class="empty-inline">Sin logos registrados.</div>
           </div>
         </article>
+        <section class="summary-quick panel card-glass">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Resumen rápido</p>
+            <h2>Estado operativo</h2>
+          </div>
+        </div>
+        <div class="status-grid">
+          <div class="status-card">
+            <span>Equipos</span>
+            <strong id="teamCount">0</strong>
+          </div>
+          <div class="status-card">
+            <span>Cruces</span>
+            <strong id="overlapCount">0</strong>
+          </div>
+          <div class="status-card">
+            <span>Partidos</span>
+            <strong id="matchCount">0</strong>
+          </div>
+        </div>
+        <div class="hero-note">
+          Un registro de equipo y sus fechas representan la disponibilidad de ese equipo en esas fechas.
+        </div>
+        </section>
       </section>
 
       <main class="views-shell">
@@ -1036,9 +1543,9 @@ th {
 
                 <div class="field-grid field-grid-3">
                   <label>
-                    Categoria
+                    Categoría
                     <select id="category" name="category" required>
-                      <option value="">Selecciona una categoria</option>
+                      <option value="">Selecciona una categoría</option>
                     </select>
                   </label>
                   <label>
@@ -1049,7 +1556,7 @@ th {
                     Matching
                     <span class="toggle-field">
                       <input type="checkbox" id="participateInMatching" name="participateInMatching" checked>
-                      <span>Participar en matching automatico</span>
+                      <span>Participar en matching automático</span>
                     </span>
                   </label>
                 </div>
@@ -1090,89 +1597,111 @@ th {
 
                 <div class="panel-actions">
                   <button type="submit" id="saveTeamBtn" class="btn btn-primary">Guardar equipo</button>
-                  <button type="button" id="cancelEditBtn" class="btn btn-ghost hidden">Cancelar edicion</button>
+                  <button type="button" id="cancelEditBtn" class="btn btn-ghost hidden">Cancelar edición</button>
                 </div>
               </form>
             </article>
 
-            <article class="panel card-glass">
+            <article class="panel card-glass visual-panel">
               <div class="panel-head">
                 <div>
                   <p class="eyebrow">Selector visual</p>
-                  <h2>Galerias desde Drive</h2>
+                  <h2>Galerías desde Drive</h2>
                 </div>
                 <button type="button" id="loadAllGalleriesBtn" class="btn btn-secondary btn-small">Cargar galerias</button>
               </div>
 
-              <div class="field-grid field-grid-3">
-                <label>
-                  Folder fondos
-                  <input type="text" id="backgroundFolderIdInput" placeholder="ID carpeta fondos">
-                </label>
-                <label>
-                  Folder logos
-                  <input type="text" id="logosFolderIdInput" placeholder="ID carpeta logos">
-                </label>
-                <label>
-                  Folder sponsors
-                  <input type="text" id="sponsorsFolderIdInput" placeholder="ID carpeta sponsors">
-                </label>
-              </div>
+              <div class="visual-layout">
+                <section id="visualConfigSection" class="gallery-section visual-config-section">
+                  <div class="gallery-head">
+                    <div>
+                      <h3>Configuración visual</h3>
+                      <p class="muted">Controles generales de apariencia.</p>
+                    </div>
+                  </div>
+                  <div class="field-grid field-grid-1">
+                    <label>
+                      Glass opacity
+                      <input type="range" id="glassOpacityInput" min="0.02" max="0.85" step="0.01">
+                    </label>
+                    <label class="admin-only">
+                      Carpeta de fondos
+                      <input type="text" id="backgroundFolderIdInput" placeholder="ID de la carpeta de fondos">
+                    </label>
+                    <label>
+                      Carpeta de logos
+                      <input type="text" id="logosFolderIdInput" placeholder="ID de la carpeta de logos">
+                    </label>
+                    <label class="admin-only">
+                      Carpeta de sponsors
+                      <input type="text" id="sponsorsFolderIdInput" placeholder="ID de la carpeta de sponsors">
+                    </label>
+                    <label class="admin-only">
+                      Fondo personalizado
+                      <span class="toggle-field">
+                        <input type="checkbox" id="enableCustomBackgroundInput">
+                        <span>Habilitar fondo desde Drive</span>
+                      </span>
+                    </label>
+                    <label class="admin-only">
+                      Preset de acento
+                      <select id="accentPresetSelect">
+                        <option value="outline">Dorado sobre oscuro</option>
+                        <option value="solid">Dorado solido</option>
+                        <option value="inverse">Invertido</option>
+                      </select>
+                    </label>
+                    <label class="admin-only">
+                      Expandir a tarjetas grandes
+                      <span class="toggle-field">
+                        <input type="checkbox" id="accentExpandCardsInput">
+                        <span>Aplicar preset a tarjetas grandes</span>
+                      </span>
+                    </label>
+                  </div>
+                </section>
 
-              <div class="field-grid field-grid-2">
-                <label>
-                  Glass opacity
-                  <input type="range" id="glassOpacityInput" min="0.2" max="0.85" step="0.05">
-                </label>
-                <label>
-                  Fondo personalizado
-                  <span class="toggle-field">
-                    <input type="checkbox" id="enableCustomBackgroundInput">
-                    <span>Habilitar fondo desde Drive</span>
-                  </span>
-                </label>
-              </div>
+                <section id="backgroundSection" class="gallery-section admin-only">
+                  <div class="gallery-head">
+                    <div>
+                      <h3>backgroundImage</h3>
+                      <p class="muted">Selector visual tipo galería.</p>
+                    </div>
+                    <div class="panel-actions">
+                      <button type="button" id="applyBackgroundBtn" class="btn btn-secondary btn-small">Aplicar imagen</button>
+                      <button type="button" id="reloadBackgroundGalleryBtn" class="btn btn-ghost btn-small">Actualizar</button>
+                    </div>
+                  </div>
+                  <div id="backgroundGalleryStatus" class="gallery-status muted">Esperando carpeta.</div>
+                  <div id="backgroundGallery" class="gallery-grid"></div>
+                </section>
 
-              <div class="gallery-section">
-                <div class="gallery-head">
-                  <div>
-                    <h3>backgroundImage</h3>
-                    <p class="muted">Selector visual tipo galeria.</p>
+                <section id="logosSection" class="gallery-section">
+                  <div class="gallery-head">
+                    <div>
+                      <h3>teamLogo</h3>
+                      <p class="muted">Haz click en un logo para asignarlo al equipo actual.</p>
+                    </div>
+                    <div class="panel-actions">
+                      <button type="button" id="applyTeamLogoBtn" class="btn btn-secondary btn-small">Usar como logo</button>
+                      <button type="button" id="reloadLogosGalleryBtn" class="btn btn-ghost btn-small">Actualizar</button>
+                    </div>
                   </div>
-                  <div class="panel-actions">
-                    <button type="button" id="applyBackgroundBtn" class="btn btn-secondary btn-small">Aplicar imagen</button>
-                    <button type="button" id="reloadBackgroundGalleryBtn" class="btn btn-ghost btn-small">Actualizar</button>
-                  </div>
-                </div>
-                <div id="backgroundGalleryStatus" class="gallery-status muted">Esperando carpeta.</div>
-                <div id="backgroundGallery" class="gallery-grid"></div>
-              </div>
+                  <div id="logosGalleryStatus" class="gallery-status muted">Esperando carpeta.</div>
+                  <div id="logosGallery" class="gallery-grid"></div>
+                </section>
 
-              <div class="gallery-section">
-                <div class="gallery-head">
-                  <div>
-                    <h3>teamLogo</h3>
-                    <p class="muted">Haz click en un logo para asignarlo al equipo actual.</p>
+                <section id="sponsorsSection" class="gallery-section admin-only">
+                  <div class="gallery-head">
+                    <div>
+                      <h3>sponsors</h3>
+                      <p class="muted">Selección múltiple para el carrusel superior.</p>
+                    </div>
+                    <button type="button" id="reloadSponsorsGalleryBtn" class="btn btn-ghost btn-small">Actualizar</button>
                   </div>
-                  <div class="panel-actions">
-                    <button type="button" id="applyTeamLogoBtn" class="btn btn-secondary btn-small">Usar como logo</button>
-                    <button type="button" id="reloadLogosGalleryBtn" class="btn btn-ghost btn-small">Actualizar</button>
-                  </div>
-                </div>
-                <div id="logosGalleryStatus" class="gallery-status muted">Esperando carpeta.</div>
-                <div id="logosGallery" class="gallery-grid"></div>
-              </div>
-
-              <div class="gallery-section">
-                <div class="gallery-head">
-                  <div>
-                    <h3>sponsors</h3>
-                    <p class="muted">Seleccion multiple para el carrusel superior.</p>
-                  </div>
-                  <button type="button" id="reloadSponsorsGalleryBtn" class="btn btn-ghost btn-small">Actualizar</button>
-                </div>
-                <div id="sponsorsGalleryStatus" class="gallery-status muted">Esperando carpeta.</div>
-                <div id="sponsorsGallery" class="gallery-grid"></div>
+                  <div id="sponsorsGalleryStatus" class="gallery-status muted">Esperando carpeta.</div>
+                  <div id="sponsorsGallery" class="gallery-grid"></div>
+                </section>
               </div>
             </article>
           </div>
@@ -1193,7 +1722,7 @@ th {
                     <tr>
                       <th>Equipo</th>
                       <th>Rama</th>
-                      <th>Categoria</th>
+                      <th>Categoría</th>
                       <th>Fecha</th>
                       <th>Horario</th>
                       <th>Logo</th>
@@ -1201,7 +1730,7 @@ th {
                     </tr>
                   </thead>
                   <tbody id="teamsTableBody">
-                    <tr><td colspan="7" class="empty-state">Todavia no hay equipos registrados.</td></tr>
+                    <tr><td colspan="7" class="empty-state">Todavía no hay equipos registrados.</td></tr>
                   </tbody>
                 </table>
               </div>
@@ -1215,7 +1744,7 @@ th {
                 </div>
               </div>
               <div id="overlapsList" class="cards-list">
-                <div class="empty-state">Aun no se detectan coincidencias.</div>
+                <div class="empty-state">Aún no se detectan coincidencias.</div>
               </div>
             </article>
           </div>
@@ -1247,17 +1776,23 @@ th {
                 </div>
                 <div class="panel-actions">
                   <button type="button" id="generateMatchesBtn" class="btn btn-secondary">Generar partidos</button>
+                  <button type="button" id="saveMatchesBtn" class="btn btn-primary btn-small">Guardar</button>
                 </div>
               </div>
-
-              <div class="matches-head">
-                <span>Partido sugerido</span>
-                <span>Rival</span>
-                <span>Fecha</span>
-                <span>Sede</span>
+              <div class="matches-toolbar">
+                <label class="accept-all">
+                  <input type="checkbox" id="acceptAllMatches">
+                  <span>Aceptar todas</span>
+                </label>
+                <div class="matches-head">
+                  <span>Partido sugerido</span>
+                  <span>Rival</span>
+                  <span>Fecha</span>
+                  <span>Sede</span>
+                </div>
               </div>
               <div id="matchesList" class="matches-list">
-                <div class="empty-state">Todavia no se han generado partidos.</div>
+                <div class="empty-state">Todavía no se han generado partidos.</div>
               </div>
             </article>
 
@@ -1265,11 +1800,11 @@ th {
               <div class="panel-head">
                 <div>
                   <p class="eyebrow">Vista alterna</p>
-                  <h2>Listado compacto</h2>
+                  <h2>Detalle del partido</h2>
                 </div>
               </div>
               <div id="viewPartidosList" class="cards-list">
-                <div class="empty-state">Sin partidos sugeridos.</div>
+                <div class="empty-state">Selecciona un partido para ver su detalle.</div>
               </div>
             </article>
           </div>
@@ -1281,7 +1816,7 @@ th {
               <div class="panel-head">
                 <div>
                   <p class="eyebrow">Admin</p>
-                  <h2>Configuracion compacta</h2>
+                  <h2>Configuración compacta</h2>
                 </div>
               </div>
 
@@ -1323,7 +1858,7 @@ th {
                     </select>
                   </label>
                   <label>
-                    Numero de grupos
+                    Número de grupos
                     <input type="number" id="groupCount" min="2" max="8" step="1" value="3">
                   </label>
                   <label>
@@ -1338,7 +1873,7 @@ th {
                 <div class="panel-actions">
                   <button type="button" id="addBlockedDateBtn" class="btn btn-ghost btn-small">Agregar fecha</button>
                   <button type="button" id="addRangeBtn" class="btn btn-ghost btn-small">Agregar rango</button>
-                  <button type="submit" class="btn btn-primary">Guardar configuracion</button>
+                  <button type="submit" class="btn btn-primary">Guardar configuración</button>
                 </div>
               </form>
             </article>
@@ -1375,7 +1910,7 @@ window.APP_CONFIG = {
     backgroundFolderId: "17J5JDagGIwX3Zdei_WjD1jbB63k7LF-e",
     logosFolderId: "1-BZvUvJMDqC0zaEyRBjFeI-R2h69BZbU6q1LYJKnbS0RerlXzV860o8KAhWQE58_lb0oIywS",
     sponsorsFolderId: "1MvG59spxK9cQGzDPl4mqS3MdIq0TgOrL",
-    glassOpacity: "0.6",
+    glassOpacity: "0.2",
     enableCustomBackground: true,
     adminEmails: [],
     backgroundImage: ""
@@ -1406,7 +1941,7 @@ window.APP_CONFIG = {
       overrideBlockedDates: [],
       ownerEmail: "demo1@example.com",
       createdAt: "2026-04-01T10:00:00.000Z",
-      logoUrl: "",
+      logoUrl: "https://drive.google.com/open?id=1POrPyQPEmetVsDhwXFMInfDTcAfiACcl",
       participateInMatching: true
     },
     {
@@ -1422,7 +1957,7 @@ window.APP_CONFIG = {
       overrideBlockedDates: [],
       ownerEmail: "demo2@example.com",
       createdAt: "2026-04-01T10:02:00.000Z",
-      logoUrl: "",
+      logoUrl: "https://drive.google.com/open?id=15x5qLfJ9GfeYPJBCEqNLNFUl7gVmTiqs",
       participateInMatching: true
     },
     {
@@ -1438,7 +1973,7 @@ window.APP_CONFIG = {
       overrideBlockedDates: [],
       ownerEmail: "demo3@example.com",
       createdAt: "2026-04-01T10:03:00.000Z",
-      logoUrl: "",
+      logoUrl: "https://drive.google.com/open?id=1POrPyQPEmetVsDhwXFMInfDTcAfiACcl",
       participateInMatching: true
     }
   ],
@@ -1468,14 +2003,16 @@ window.APP_CONFIG = {
     logosfolderid: "logosFolderId",
     sponsorsfolderid: "sponsorsFolderId"
   };
+  const initialLoggedUser = getSessionUser();
   const state = {
     teams: [],
     matches: [],
-    settings: normalizeSettings(config.settings || {}),
+    settings: normalizeSettings(config.settings || {}, initialLoggedUser),
     adminConfig: normalizeAdminConfig(config.adminConfig || {}),
     capacity: normalizeCapacity(config.capacityRows || []),
     configRows: null,
-    loggedUser: readJson(config.sessionStorageKey || "matchmaking-session", null),
+    baseSettings: null,
+    loggedUser: initialLoggedUser,
     editingTeamId: "",
     view: "registro",
     galleries: { backgroundImage: [], teamLogo: [], sponsors: [] },
@@ -1484,9 +2021,13 @@ window.APP_CONFIG = {
       teamLogo: localStorage.getItem("selected_team_logo") || "",
       sponsors: readJson("selected_sponsors", [])
     },
+    matchUi: {
+      selectedMatchId: "",
+      draftAccepted: {}
+    },
     matching: { mode: "roundRobin", groupCount: 3, manual: false },
     branches: ["varonil", "femenil", "mixto"],
-    categories: ["Libre"]
+    categories: ["Libre", "Juvenil", "Infantil Mayor"]
   };
   const el = {};
 
@@ -1498,6 +2039,7 @@ window.APP_CONFIG = {
     populateStaticOptions();
     setToday();
     hydrateVisualInputs();
+    updateSidebarToggle();
     renderAuth();
     try {
       await loadBootstrap();
@@ -1507,17 +2049,17 @@ window.APP_CONFIG = {
       applyGlass();
       renderAll();
       await loadAllConfiguredGalleries(false);
-      showMessage("Galerias cargadas", "success");
+      showMessage("Galerías cargadas", "success");
     } catch (error) {
       console.error(error);
       applyGlass();
       renderAll();
-      showMessage("No se pudo cargar la configuracion inicial", "error");
+      showMessage("No se pudo cargar la configuración inicial", "error");
     }
   }
 
   function cacheElements() {
-    ["appBackground","sidebar","sidebarToggle","loginToggle","loginDropdown","authStatus","googleLoginButton","userSession","userName","userEmail","logoutBtn","backendBadge","backendHint","teamCount","overlapCount","matchCount","sponsorsCarousel","headerTeamLogos","teamForm","teamName","branch","category","date","startTime","endTime","unavailableDates","preferredDates","participateInMatching","teamLogoUrl","teamLogoPreview","saveTeamBtn","cancelEditBtn","messageBox","teamsTableBody","overlapsList","matchesList","viewEquiposList","viewPartidosList","backgroundFolderIdInput","logosFolderIdInput","sponsorsFolderIdInput","glassOpacityInput","enableCustomBackgroundInput","loadAllGalleriesBtn","saveVisualSettingsBtn","applyBackgroundBtn","applyTeamLogoBtn","reloadBackgroundGalleryBtn","reloadLogosGalleryBtn","reloadSponsorsGalleryBtn","backgroundGalleryStatus","backgroundGallery","logosGalleryStatus","logosGallery","sponsorsGalleryStatus","sponsorsGallery","adminForm","adminStartDate","adminEndDate","blockedDates","blockedDateInput","blockedReasonInput","matchingMode","groupCount","manualMatchingEnabled","addBlockedDateBtn","addRangeBtn","userBlockedView","blockedDatesReadable","generateMatchesBtn","resetDemoBtn"].forEach(function (id) {
+    ["appBackground","sidebar","sidebarToggle","loginToggle","loginDropdown","authStatus","authDebug","googleLoginButton","userSession","userName","userEmail","logoutBtn","backendBadge","backendHint","teamCount","overlapCount","matchCount","sponsorsCarousel","headerTeamLogos","heroLoginBtn","authProbeBtn","teamForm","teamName","branch","category","date","startTime","endTime","unavailableDates","preferredDates","participateInMatching","teamLogoUrl","teamLogoPreview","saveTeamBtn","cancelEditBtn","messageBox","teamsTableBody","overlapsList","matchesList","viewEquiposList","viewPartidosList","visualConfigSection","backgroundSection","logosSection","sponsorsSection","backgroundFolderIdInput","logosFolderIdInput","sponsorsFolderIdInput","glassOpacityInput","enableCustomBackgroundInput","accentPresetSelect","accentExpandCardsInput","loadAllGalleriesBtn","saveVisualSettingsBtn","applyBackgroundBtn","applyTeamLogoBtn","reloadBackgroundGalleryBtn","reloadLogosGalleryBtn","reloadSponsorsGalleryBtn","backgroundGalleryStatus","backgroundGallery","logosGalleryStatus","logosGallery","sponsorsGalleryStatus","sponsorsGallery","adminForm","adminStartDate","adminEndDate","blockedDates","blockedDateInput","blockedReasonInput","matchingMode","groupCount","manualMatchingEnabled","addBlockedDateBtn","addRangeBtn","userBlockedView","blockedDatesReadable","generateMatchesBtn","saveMatchesBtn","acceptAllMatches","resetDemoBtn"].forEach(function (id) {
       el[id] = document.getElementById(id);
     });
     el.navItems = Array.from(document.querySelectorAll(".nav-item"));
@@ -1527,7 +2069,8 @@ window.APP_CONFIG = {
 
   function bindEvents() {
     el.sidebarToggle.addEventListener("click", toggleSidebar);
-    el.loginToggle.addEventListener("click", toggleLoginDropdown);
+    el.heroLoginBtn.addEventListener("click", toggleLoginDropdown);
+    if (el.authProbeBtn) el.authProbeBtn.addEventListener("click", toggleLoginDropdown);
     document.addEventListener("click", handleClickOutside);
     el.logoutBtn.addEventListener("click", logout);
     el.navItems.forEach(function (button) {
@@ -1536,6 +2079,8 @@ window.APP_CONFIG = {
     el.teamForm.addEventListener("submit", saveTeam);
     el.cancelEditBtn.addEventListener("click", cancelEdit);
     el.generateMatchesBtn.addEventListener("click", generateMatchesFlow);
+    el.saveMatchesBtn.addEventListener("click", saveAcceptedMatches);
+    el.acceptAllMatches.addEventListener("change", toggleAcceptAllMatches);
     el.resetDemoBtn.addEventListener("click", seedDemo);
     el.loadAllGalleriesBtn.addEventListener("click", function () { loadAllConfiguredGalleries(true); });
     el.applyBackgroundBtn.addEventListener("click", applySelectedBackground);
@@ -1545,8 +2090,16 @@ window.APP_CONFIG = {
     el.reloadSponsorsGalleryBtn.addEventListener("click", function () { loadGallery("sponsors", true); });
     el.saveVisualSettingsBtn.addEventListener("click", saveVisualSettings);
     el.glassOpacityInput.addEventListener("input", function () {
-      state.settings.glassOpacity = String(el.glassOpacityInput.value || "0.6");
+      state.settings.glassOpacity = String(el.glassOpacityInput.value || getDefaultGlassOpacity(state.loggedUser, state.settings.adminEmails));
       applyGlass();
+    });
+    el.accentPresetSelect.addEventListener("change", function () {
+      state.settings.accentPreset = el.accentPresetSelect.value;
+      applyAccentPreset();
+    });
+    el.accentExpandCardsInput.addEventListener("change", function () {
+      state.settings.accentExpandCards = Boolean(el.accentExpandCardsInput.checked);
+      applyAccentPreset();
     });
     el.enableCustomBackgroundInput.addEventListener("change", function () {
       state.settings.enableCustomBackground = Boolean(el.enableCustomBackgroundInput.checked);
@@ -1562,7 +2115,7 @@ window.APP_CONFIG = {
 
   function populateStaticOptions() {
     fillSelect(el.branch, state.branches, "Selecciona una rama");
-    fillSelect(el.category, state.categories, "Selecciona una categoria");
+    fillSelect(el.category, state.categories, "Selecciona una categoría");
   }
 
   function setToday() {
@@ -1595,6 +2148,7 @@ window.APP_CONFIG = {
   async function loadSettings() {
     state.settings = normalizeSettings(config.settings || {});
     const rows = state.configRows || await tryLoadConfigRows();
+    state.settings.dynamic = state.settings.dynamic || {};
     rows.forEach(function (row) {
       const key = normalizeKey(row[0]);
       const value = row[1];
@@ -1611,10 +2165,13 @@ window.APP_CONFIG = {
       }
       if (Object.prototype.hasOwnProperty.call(state.settings, target) && String(value).trim()) {
         state.settings[target] = target === "enableCustomBackground" ? !/false/i.test(String(value)) : String(value).trim();
+        return;
       }
+      state.settings.dynamic[key] = String(value).trim();
     });
     hydrateVisualInputs();
     applyGlass();
+    state.baseSettings = Object.assign({}, state.settings, { dynamic: Object.assign({}, state.settings.dynamic || {}) });
   }
 
   async function tryLoadConfigRows() {
@@ -1636,14 +2193,33 @@ window.APP_CONFIG = {
     el.backgroundFolderIdInput.value = state.settings.backgroundFolderId || "";
     el.logosFolderIdInput.value = state.settings.logosFolderId || "";
     el.sponsorsFolderIdInput.value = state.settings.sponsorsFolderId || "";
-    el.glassOpacityInput.value = state.settings.glassOpacity || "0.6";
+    el.glassOpacityInput.value = state.settings.glassOpacity || getDefaultGlassOpacity(state.loggedUser, state.settings.adminEmails);
     el.enableCustomBackgroundInput.checked = Boolean(state.settings.enableCustomBackground);
+    el.accentPresetSelect.value = state.settings.accentPreset || "outline";
+    el.accentExpandCardsInput.checked = Boolean(state.settings.accentExpandCards);
     el.adminStartDate.value = state.adminConfig.startDate || "";
     el.adminEndDate.value = state.adminConfig.endDate || "";
     el.blockedDates.value = serializeBlockedDates(state.adminConfig.blockedDates);
     el.matchingMode.value = state.matching.mode;
     el.groupCount.value = String(state.matching.groupCount);
     el.manualMatchingEnabled.checked = state.matching.manual;
+  }
+
+  function getSessionUser() {
+    return readJson(config.sessionStorageKey || "ipv-matchmaking-session", null);
+  }
+
+  function getUserVisualSettingsKey(user) {
+    const currentUser = user || state.loggedUser || getSessionUser();
+    const userKey = currentUser && currentUser.email ? currentUser.email.trim().toLowerCase() : "guest";
+    return "ipv_visual_settings_" + userKey;
+  }
+
+  function getDefaultGlassOpacity(user, adminEmails) {
+    const currentUser = user || getSessionUser();
+    const email = currentUser && currentUser.email ? currentUser.email.toLowerCase() : "";
+    const admins = parseEmails(adminEmails || (config.settings && config.settings.adminEmails) || []);
+    return email && admins.indexOf(email) >= 0 ? "0.08" : "0.2";
   }
 
   async function getImages(folderId, forceRefresh) {
@@ -1689,13 +2265,13 @@ window.APP_CONFIG = {
     try {
       const images = await getImages(current.folderId, forceRefresh);
       state.galleries[type] = images;
-      current.status.textContent = images.length ? "Galerias cargadas" : "No hay imagenes";
+      current.status.textContent = images.length ? "Galerías cargadas" : "No hay imágenes";
       renderGallery(type);
       if (type === "backgroundImage" && !state.selected.background && images[0]) selectGalleryItem("backgroundImage", images[0].url);
     } catch (error) {
       console.error(error);
-      current.status.textContent = "Error al cargar imagenes";
-      current.target.innerHTML = emptyGallery("No hay imagenes disponibles en la carpeta");
+      current.status.textContent = "Error al cargar imágenes";
+      current.target.innerHTML = emptyGallery("No hay imágenes disponibles en la carpeta");
     }
   }
   function renderGallery(type) {
@@ -1703,7 +2279,7 @@ window.APP_CONFIG = {
     const target = targetMap[type];
     const items = state.galleries[type] || [];
     if (!items.length) {
-      target.innerHTML = emptyGallery("No hay imagenes disponibles en la carpeta");
+      target.innerHTML = emptyGallery("No hay imágenes disponibles en la carpeta");
       return;
     }
     target.innerHTML = items.map(function (item) {
@@ -1772,12 +2348,15 @@ window.APP_CONFIG = {
     state.settings.backgroundFolderId = el.backgroundFolderIdInput.value.trim();
     state.settings.logosFolderId = el.logosFolderIdInput.value.trim();
     state.settings.sponsorsFolderId = el.sponsorsFolderIdInput.value.trim();
-    state.settings.glassOpacity = String(el.glassOpacityInput.value || "0.6");
+    state.settings.glassOpacity = String(el.glassOpacityInput.value || getDefaultGlassOpacity(state.loggedUser, state.settings.adminEmails));
     state.settings.enableCustomBackground = Boolean(el.enableCustomBackgroundInput.checked);
-    localStorage.setItem("ipv_visual_settings", JSON.stringify(state.settings));
+    state.settings.accentPreset = el.accentPresetSelect.value || "outline";
+    state.settings.accentExpandCards = Boolean(el.accentExpandCardsInput.checked);
+    localStorage.setItem(getUserVisualSettingsKey(state.loggedUser), JSON.stringify(state.settings));
     applyGlass();
+    applyAccentPreset();
     applyBackground(state.selected.background || state.settings.backgroundImage);
-    showMessage("Configuracion actualizada", "success");
+      showMessage("Configuración actualizada", "success");
   }
 
   function applyBackground(url) {
@@ -1790,7 +2369,12 @@ window.APP_CONFIG = {
   }
 
   function applyGlass() {
-    document.documentElement.style.setProperty("--glass-opacity", String(state.settings.glassOpacity || "0.6"));
+    document.documentElement.style.setProperty("--glass-opacity", String(state.settings.glassOpacity || getDefaultGlassOpacity(state.loggedUser, state.settings.adminEmails)));
+  }
+
+  function applyAccentPreset() {
+    document.body.setAttribute("data-accent-preset", state.settings.accentPreset || "outline");
+    document.body.setAttribute("data-accent-expand", state.settings.accentExpandCards ? "true" : "false");
   }
 
   async function saveTeam(event) {
@@ -1834,7 +2418,7 @@ window.APP_CONFIG = {
 
   function cancelEdit() {
     resetTeamForm();
-    showMessage("Edicion cancelada", "success");
+    showMessage("Edición cancelada", "success");
   }
 
   function startEdit(id) {
@@ -1859,6 +2443,7 @@ window.APP_CONFIG = {
   function renderAll() {
     setView(state.view);
     renderAuth();
+    renderConnectedVisibility();
     renderStats();
     renderLogoPreview();
     renderTeamsTable();
@@ -1870,23 +2455,42 @@ window.APP_CONFIG = {
     renderTeamLogos();
     renderBlockedDates();
     renderAdminVisibility();
+    applyAccentPreset();
   }
 
   function renderAuth() {
     const isLogged = Boolean(state.loggedUser && state.loggedUser.email);
     el.loginDropdown.classList.toggle("hidden", !el.loginDropdown.dataset.open);
+    el.heroLoginBtn.classList.toggle("is-google-icon", isLogged);
+    el.heroLoginBtn.innerHTML = isLogged ? "<span class='google-mark' aria-hidden='true'>G</span>" : "Acceso con Google";
+    el.heroLoginBtn.setAttribute("aria-label", isLogged ? "Cuenta de Google" : "Acceso con Google");
+    if (el.authProbeBtn) el.authProbeBtn.textContent = isLogged ? "Panel de cuenta Google" : "Probar acceso Google";
     if (isLogged) {
-      el.authStatus.textContent = isAdmin() ? "Sesion activa como administrador." : "Sesion activa. Puedes editar tus equipos.";
+      setAuthDebug("");
+      el.authStatus.textContent = isAdmin() ? "Sesión activa como administrador." : "Sesión activa. Puedes editar tus equipos.";
       el.userSession.classList.remove("hidden");
       el.userName.textContent = state.loggedUser.name || "Usuario";
       el.userEmail.textContent = state.loggedUser.email || "";
       el.googleLoginButton.classList.add("hidden");
     } else {
-      el.authStatus.textContent = String(config.googleClientId || "").trim() ? "Abre este panel para iniciar sesion." : "Agrega tu Google Client ID en config.js.";
+      el.authStatus.textContent = String(config.googleClientId || "").trim() ? "Abre este panel para iniciar sesión." : "Agrega tu Google Client ID en config.js.";
       el.userSession.classList.add("hidden");
       el.googleLoginButton.classList.remove("hidden");
     }
-    initGoogleAuth();
+  }
+
+  function renderConnectedVisibility() {
+    const isLogged = Boolean(state.loggedUser && state.loggedUser.email);
+    el.saveTeamBtn.classList.toggle("hidden", !isLogged);
+    el.cancelEditBtn.classList.toggle("hidden", !isLogged || !state.editingTeamId);
+    el.saveVisualSettingsBtn.classList.toggle("hidden", !isLogged);
+    el.saveMatchesBtn.classList.toggle("hidden", !isLogged);
+    el.applyTeamLogoBtn.classList.toggle("hidden", !isLogged);
+    el.acceptAllMatches.closest(".accept-all").classList.toggle("hidden", !isLogged);
+    el.participateInMatching.closest("label").classList.toggle("hidden", !isLogged);
+    if (!isLogged && state.editingTeamId) {
+      state.editingTeamId = "";
+    }
   }
 
   function renderStats() {
@@ -1898,7 +2502,7 @@ window.APP_CONFIG = {
 
   function renderTeamsTable() {
     if (!state.teams.length) {
-      el.teamsTableBody.innerHTML = "<tr><td colspan='7' class='empty-state'>Todavia no hay equipos registrados.</td></tr>";
+      el.teamsTableBody.innerHTML = "<tr><td colspan='7' class='empty-state'>Todavía no hay equipos registrados.</td></tr>";
       return;
     }
     el.teamsTableBody.innerHTML = state.teams.map(function (team) {
@@ -1917,15 +2521,15 @@ window.APP_CONFIG = {
       return;
     }
     el.viewEquiposList.innerHTML = state.teams.map(function (team) {
-      const logo = team.logoUrl ? "<img class='team-card-logo' src='" + esc(safeImageUrl(team.logoUrl)) + "' alt='" + esc(team.name) + "' onerror=\"this.src='" + PLACEHOLDER + "'\">" : "<div class='team-card-logo'>" + esc(initials(team.name)) + "</div>";
-      return "<article class='team-card'><div class='panel-head'><div><h3>" + esc(team.name) + "</h3><p class='muted'>" + esc(team.branch + " · " + team.category) + "</p></div>" + logo + "</div><div class='small-muted'>" + esc(formatHumanDate(team.date) + " · " + team.startTime + " - " + team.endTime) + "</div></article>";
+      const logo = team.logoUrl ? "<img class='team-card-logo' src='" + esc(safeImageUrl(team.logoUrl)) + "' alt='" + esc(team.name) + "' onerror=\"this.src='" + PLACEHOLDER + "'\">" : "<div class='team-card-logo-fallback'>" + esc(initials(team.name)) + "</div>";
+      return "<article class='team-card'><div class='team-card-head'><div><h3>" + esc(team.name) + "</h3><p class='muted'>" + esc(team.branch + " · " + team.category) + "</p></div><div class='team-card-logo-wrap'>" + logo + "</div></div><div class='small-muted'>" + esc(formatHumanDate(team.date) + " · " + team.startTime + " - " + team.endTime) + "</div></article>";
     }).join("");
   }
 
   function renderOverlaps() {
     const overlaps = computeOverlaps();
     if (!overlaps.length) {
-      el.overlapsList.innerHTML = "<div class='empty-state'>Aun no se detectan coincidencias.</div>";
+      el.overlapsList.innerHTML = "<div class='empty-state'>Aún no se detectan coincidencias.</div>";
       return;
     }
     el.overlapsList.innerHTML = overlaps.map(function (item) {
@@ -1933,32 +2537,70 @@ window.APP_CONFIG = {
     }).join("");
   }
   function renderMatches() {
+    const isLogged = Boolean(state.loggedUser && state.loggedUser.email);
     if (!state.matches.length) {
-      el.matchesList.innerHTML = "<div class='empty-state'>Todavia no se han generado partidos.</div>";
+      el.matchesList.innerHTML = "<div class='empty-state'>Todavía no se han generado partidos.</div>";
+      el.acceptAllMatches.checked = false;
+      el.acceptAllMatches.indeterminate = false;
       return;
     }
+    if (!state.matchUi.selectedMatchId || !state.matches.some(function (item) { return item.id === state.matchUi.selectedMatchId; })) {
+      state.matchUi.selectedMatchId = state.matches[0].id;
+    }
+    state.matchUi.draftAccepted = buildDraftAccepted();
     el.matchesList.innerHTML = state.matches.map(function (match) {
-      const badge = dateBadge(match.date);
-      return "<article class='match-card'><div class='match-main'><div class='match-date-badge'><span class='match-date-day'>" + esc(badge.day) + "</span><span class='match-date-month'>" + esc(badge.month) + "</span></div><div class='match-team'>" + renderMatchLogo(match.teamA.logoUrl, match.teamA.name) + "<strong>" + esc(match.teamA.name) + "</strong></div><div class='match-score'>vs</div><div class='match-team'>" + renderMatchLogo(match.teamB.logoUrl, match.teamB.name) + "<strong>" + esc(match.teamB.name) + "</strong></div><div>" + esc(match.venue || "Por confirmar") + "<div class='small-muted'>" + esc(match.date) + "</div></div></div><div class='match-detail'><span class='tag'>" + esc(match.branch + " · " + match.category + (match.group ? " · " + match.group : "")) + "</span><div><strong>Alternativas:</strong></div><div class='match-alt-list'>" + renderAlternatives(match.alternatives) + "</div><label class='accept-row'><input type='checkbox' class='accept-match' data-id='" + esc(match.id) + "' " + (match.accepted ? "checked" : "") + "><span>Aceptar este partido</span></label></div></article>";
+      const venueValue = formatVenueLabel(match);
+      const venueSubline = match.court || (match.venue ? "Cancha por confirmar" : "Sede por confirmar");
+      const action = isLogged ? "<label class='match-summary-action' aria-label='Aceptar partido'><input type='checkbox' class='accept-match' data-id='" + esc(match.id) + "' " + (state.matchUi.draftAccepted[match.id] ? "checked" : "") + "></label>" : "";
+      return "<article class='match-summary" + (state.matchUi.selectedMatchId === match.id ? " is-active" : "") + "' data-id='" + esc(match.id) + "'><div class='match-summary-party'><strong class='match-summary-title'>" + esc(match.teamA.name) + "</strong><span class='match-summary-meta'>" + esc(match.branch + " · " + match.category + (match.group ? " · " + match.group : "")) + "</span></div><div class='match-summary-opponent'><strong class='match-summary-title'>" + esc(match.teamB.name) + "</strong><span class='match-summary-meta'>" + esc(match.startTime + " - " + match.endTime) + "</span></div><div class='match-summary-meta'><strong class='match-summary-title'>" + esc(formatHumanDate(match.date)) + "</strong><span>" + esc(match.date) + "</span></div><div class='match-summary-meta'><strong class='match-summary-title'>" + esc(venueValue) + "</strong><span>" + esc(venueSubline) + "</span></div>" + action + "</article>";
     }).join("");
-    el.matchesList.querySelectorAll(".accept-match").forEach(function (checkbox) {
-      checkbox.addEventListener("change", function () {
-        const match = state.matches.find(function (item) { return item.id === checkbox.dataset.id; });
-        if (match) match.accepted = checkbox.checked;
-        persistData();
+    el.matchesList.querySelectorAll(".match-summary").forEach(function (card) {
+      card.addEventListener("click", function () {
+        state.matchUi.selectedMatchId = card.dataset.id;
+        renderMatches();
         renderCompactMatches();
       });
     });
+    el.matchesList.querySelectorAll(".accept-match").forEach(function (checkbox) {
+      checkbox.addEventListener("change", function () {
+        state.matchUi.draftAccepted[checkbox.dataset.id] = checkbox.checked;
+        syncAcceptAllState();
+        renderCompactMatches();
+      });
+      checkbox.addEventListener("click", function (event) {
+        event.stopPropagation();
+      });
+    });
+    syncAcceptAllState();
   }
 
   function renderCompactMatches() {
+    const isLogged = Boolean(state.loggedUser && state.loggedUser.email);
     if (!state.matches.length) {
-      el.viewPartidosList.innerHTML = "<div class='empty-state'>Sin partidos sugeridos.</div>";
+      el.viewPartidosList.innerHTML = "<div class='empty-state'>Selecciona un partido para ver su detalle.</div>";
       return;
     }
-    el.viewPartidosList.innerHTML = state.matches.map(function (match) {
-      return "<article class='match-card'><h3>" + esc(match.teamA.name + " vs " + match.teamB.name) + "</h3><div>" + esc(formatHumanDate(match.date) + " · " + match.startTime + " - " + match.endTime) + "</div><div class='small-muted'>" + esc((match.venue || "Sede por confirmar") + (match.accepted ? " · Aceptado" : " · Pendiente")) + "</div></article>";
-    }).join("");
+    const selected = state.matches.find(function (match) { return match.id === state.matchUi.selectedMatchId; }) || state.matches[0];
+    if (!selected) {
+      el.viewPartidosList.innerHTML = "<div class='empty-state'>Selecciona un partido para ver su detalle.</div>";
+      return;
+    }
+    const badge = dateBadge(selected.date);
+    const accepted = Boolean(state.matchUi.draftAccepted[selected.id]);
+    const venueLink = getVenueLink(selected.venue);
+    const venueValue = formatVenueLabel(selected);
+    const venueHtml = venueLink ? "<a class='match-link' href='" + esc(venueLink) + "' target='_blank' rel='noopener noreferrer'>" + esc(venueValue) + "</a>" : esc(venueValue);
+    const alternatives = renderAlternatives(selected.alternatives);
+    const detailAction = isLogged ? "<label class='match-detail-actions'><input type='checkbox' class='accept-match-detail' data-id='" + esc(selected.id) + "' " + (accepted ? "checked" : "") + "><span>Aceptar este partido</span></label>" : "";
+    el.viewPartidosList.innerHTML = "<article class='match-card match-detail-card'><div class='match-detail-header'><div class='match-date-badge'><span class='match-date-day'>" + esc(badge.day) + "</span><span class='match-date-month'>" + esc(badge.month) + "</span></div><div class='match-detail-team'>" + renderMatchLogo(selected.teamA.logoUrl, selected.teamA.name) + "<strong>" + esc(selected.teamA.name) + "</strong></div><div class='match-detail-vs'>VS</div><div class='match-detail-team'>" + renderMatchLogo(selected.teamB.logoUrl, selected.teamB.name) + "<strong>" + esc(selected.teamB.name) + "</strong></div><div class='match-detail-side'><span class='match-detail-label'>Estado</span><span class='tag'>" + esc(accepted ? "Aceptado" : "Pendiente") + "</span></div></div><div class='match-detail-grid'><div class='match-detail-block'><span class='match-detail-label'>Partido sugerido</span><span class='match-detail-value'>" + esc(selected.teamA.name) + "</span></div><div class='match-detail-block'><span class='match-detail-label'>Rival</span><span class='match-detail-value'>" + esc(selected.teamB.name) + "</span></div><div class='match-detail-block'><span class='match-detail-label'>Fecha</span><span class='match-detail-value'>" + esc(formatHumanDate(selected.date) + " · " + selected.startTime + " - " + selected.endTime) + "</span></div><div class='match-detail-block'><span class='match-detail-label'>Sede</span><span class='match-detail-value'>" + venueHtml + "</span></div></div><div class='match-detail-block'><span class='match-detail-label'>Categoría del cruce</span><span class='match-detail-value'>" + esc(selected.branch + " · " + selected.category + (selected.group ? " · " + selected.group : "")) + "</span></div><div class='match-detail-footer'><div><span class='match-detail-label'>Alternativas</span><div class='match-alt-list'>" + (alternatives || "<span class='small-muted'>Sin alternativas disponibles.</span>") + "</div></div>" + detailAction + "</div></article>";
+    const detailCheckbox = el.viewPartidosList.querySelector(".accept-match-detail");
+    if (detailCheckbox) {
+      detailCheckbox.addEventListener("change", function () {
+        state.matchUi.draftAccepted[selected.id] = detailCheckbox.checked;
+        renderMatches();
+        renderCompactMatches();
+      });
+    }
   }
 
   function renderSponsors() {
@@ -1992,6 +2634,14 @@ window.APP_CONFIG = {
   function renderAdminVisibility() {
     const admin = isAdmin();
     el.adminOnly.forEach(function (node) { node.classList.toggle("hidden", !admin); });
+    el.visualConfigSection.classList.toggle("user-visual-config", !admin);
+    el.backgroundSection.classList.toggle("hidden", !admin);
+    el.sponsorsSection.classList.toggle("hidden", !admin);
+    el.backgroundFolderIdInput.closest("label").classList.toggle("hidden", !admin);
+    el.sponsorsFolderIdInput.closest("label").classList.toggle("hidden", !admin);
+    el.enableCustomBackgroundInput.closest("label").classList.toggle("hidden", !admin);
+    el.accentPresetSelect.closest("label").classList.toggle("hidden", !admin);
+    el.accentExpandCardsInput.closest("label").classList.toggle("hidden", !admin);
     if (!admin && state.view === "config") setView("registro");
   }
 
@@ -2016,52 +2666,113 @@ window.APP_CONFIG = {
 
   function toggleSidebar() {
     el.sidebar.classList.toggle("is-collapsed");
-    el.sidebarToggle.textContent = el.sidebar.classList.contains("is-collapsed") ? "Expandir" : "Colapsar";
+    document.querySelector(".app-shell").classList.toggle("is-sidebar-collapsed", el.sidebar.classList.contains("is-collapsed"));
+    updateSidebarToggle();
+  }
+
+  function updateSidebarToggle() {
+    const collapsed = el.sidebar.classList.contains("is-collapsed");
+    const icon = collapsed ? "❯" : "❮";
+    const label = collapsed ? "Expandir menu lateral" : "Colapsar menu lateral";
+    el.sidebarToggle.innerHTML = "<span class='sidebar-toggle-icon' aria-hidden='true'>" + icon + "</span>";
+    el.sidebarToggle.setAttribute("aria-label", label);
+    el.sidebarToggle.setAttribute("title", label);
+    el.sidebarToggle.setAttribute("aria-expanded", collapsed ? "false" : "true");
   }
 
   function toggleLoginDropdown(event) {
-    event.stopPropagation();
+    if (event) event.stopPropagation();
     const next = !el.loginDropdown.dataset.open;
-    if (next) el.loginDropdown.dataset.open = "true"; else delete el.loginDropdown.dataset.open;
-    el.loginDropdown.classList.toggle("hidden", !next);
+    if (next) {
+      el.loginDropdown.dataset.open = "true";
+      el.loginDropdown.classList.remove("hidden");
+      setAuthDebug("Abriendo panel de acceso…");
+      initGoogleAuth();
+      return;
+    }
+    delete el.loginDropdown.dataset.open;
+    el.loginDropdown.classList.add("hidden");
+  }
+
+  function closeLoginDropdown() {
+    delete el.loginDropdown.dataset.open;
+    el.loginDropdown.classList.add("hidden");
   }
 
   function handleClickOutside(event) {
     if (el.loginDropdown.classList.contains("hidden")) return;
-    if (!el.loginDropdown.contains(event.target) && !el.loginToggle.contains(event.target)) {
-      delete el.loginDropdown.dataset.open;
-      el.loginDropdown.classList.add("hidden");
+    const clickedProbe = el.authProbeBtn ? el.authProbeBtn.contains(event.target) : false;
+    if (!el.loginDropdown.contains(event.target) && !el.heroLoginBtn.contains(event.target) && !clickedProbe) {
+      closeLoginDropdown();
     }
   }
 
   function initGoogleAuth() {
     const clientId = String(config.googleClientId || "").trim();
-    if (!clientId || el.googleLoginButton.dataset.bound) return;
+    if (!clientId) {
+      setAuthDebug("Falta googleClientId en config.js");
+      return;
+    }
+    if (el.googleLoginButton.dataset.bound) {
+      setAuthDebug("Botón de Google listo.");
+      return;
+    }
+    setAuthDebug("Esperando Google Identity Services…");
     waitForGoogle().then(function () {
-      if (!window.google || !window.google.accounts || !window.google.accounts.id) return;
+      if (!window.google || !window.google.accounts || !window.google.accounts.id) {
+        setAuthDebug("GIS no está disponible en window.google");
+        return;
+      }
+      setAuthDebug("GIS cargado. Inicializando…");
       window.google.accounts.id.initialize({ client_id: clientId, callback: handleCredentialResponse });
+      el.googleLoginButton.innerHTML = "";
       window.google.accounts.id.renderButton(el.googleLoginButton, { theme: "outline", size: "large", shape: "pill", locale: "es" });
       el.googleLoginButton.dataset.bound = "true";
-    }).catch(function () {});
+      setAuthDebug("Botón de Google renderizado. Selecciona tu cuenta.");
+    }).catch(function (error) {
+      setAuthDebug("Error al cargar GIS: " + (error && error.message ? error.message : "desconocido"));
+    });
   }
 
   function handleCredentialResponse(response) {
-    const payload = decodeJwt(response && response.credential);
-    if (!payload || !payload.email) {
-      showMessage("No se pudo obtener la sesion", "error");
-      return;
+    try {
+      setAuthDebug("Respuesta recibida de Google. Validando credencial…");
+      const payload = decodeJwt(response && response.credential);
+      if (!payload || !payload.email) {
+        setAuthDebug("Google respondió, pero no llegó un correo válido.");
+        showMessage("No se pudo obtener la sesión", "error");
+        return;
+      }
+      state.loggedUser = { email: payload.email, name: payload.name || payload.email };
+      localStorage.setItem(config.sessionStorageKey || "matchmaking-session", JSON.stringify(state.loggedUser));
+      setAuthDebug("Sesión obtenida para: " + state.loggedUser.email);
+      refreshVisualSettingsForCurrentUser();
+      closeLoginDropdown();
+      renderAll();
+      showMessage("Sesión iniciada correctamente", "success");
+    } catch (error) {
+      console.error("Error al completar el inicio de sesión", error);
+      setAuthDebug("Error en callback de sesión: " + (error && error.message ? error.message : "desconocido"));
+      closeLoginDropdown();
+      showMessage("No se pudo completar el inicio de sesión", "error");
     }
-    state.loggedUser = { email: payload.email, name: payload.name || payload.email };
-    localStorage.setItem(config.sessionStorageKey || "matchmaking-session", JSON.stringify(state.loggedUser));
-    renderAll();
-    showMessage("Sesion iniciada correctamente", "success");
   }
 
   function logout() {
     state.loggedUser = null;
     localStorage.removeItem(config.sessionStorageKey || "matchmaking-session");
+    setAuthDebug("");
+    refreshVisualSettingsForCurrentUser();
+    closeLoginDropdown();
     renderAll();
-    showMessage("Sesion cerrada", "success");
+    showMessage("Sesión cerrada", "success");
+  }
+
+  function setAuthDebug(message) {
+    if (!el.authDebug) return;
+    const text = String(message || "").trim();
+    el.authDebug.textContent = text;
+    el.authDebug.classList.toggle("hidden", !text);
   }
 
   async function saveAdminConfig(event) {
@@ -2075,7 +2786,7 @@ window.APP_CONFIG = {
     syncMatchingControls();
     persistData();
     renderBlockedDates();
-    showMessage("Configuracion actualizada", "success");
+    showMessage("Configuración actualizada", "success");
   }
 
   function syncMatchingControls() {
@@ -2105,10 +2816,78 @@ window.APP_CONFIG = {
   function generateMatchesFlow() {
     syncMatchingControls();
     state.matches = generateMatches();
+    state.matchUi.selectedMatchId = state.matches[0] ? state.matches[0].id : "";
+    state.matchUi.draftAccepted = {};
     persistData();
     renderAll();
     setView("partidos");
     showMessage(state.matches.length ? "Partidos generados" : "No fue posible generar partidos", state.matches.length ? "success" : "error");
+  }
+
+  function buildDraftAccepted() {
+    const next = Object.assign({}, state.matchUi.draftAccepted || {});
+    state.matches.forEach(function (match) {
+      if (typeof next[match.id] !== "boolean") next[match.id] = Boolean(match.accepted);
+    });
+    return next;
+  }
+
+  function syncAcceptAllState() {
+    if (!state.matches.length) {
+      el.acceptAllMatches.checked = false;
+      el.acceptAllMatches.indeterminate = false;
+      return;
+    }
+    const values = state.matches.map(function (match) { return Boolean(state.matchUi.draftAccepted[match.id]); });
+    const allChecked = values.every(Boolean);
+    const anyChecked = values.some(Boolean);
+    el.acceptAllMatches.checked = allChecked;
+    el.acceptAllMatches.indeterminate = anyChecked && !allChecked;
+  }
+
+  function toggleAcceptAllMatches() {
+    const checked = Boolean(el.acceptAllMatches.checked);
+    state.matches.forEach(function (match) {
+      state.matchUi.draftAccepted[match.id] = checked;
+    });
+    el.acceptAllMatches.indeterminate = false;
+    renderMatches();
+    renderCompactMatches();
+  }
+
+  function saveAcceptedMatches() {
+    if (!state.matches.length) {
+      showMessage("No hay partidos para guardar", "error");
+      return;
+    }
+    state.matches = state.matches.map(function (match) {
+      return Object.assign({}, match, { accepted: Boolean(state.matchUi.draftAccepted[match.id]) });
+    });
+    persistData();
+    renderAll();
+    showMessage("Aceptaciones de partidos guardadas", "success");
+  }
+
+  function refreshVisualSettingsForCurrentUser() {
+    const source = state.baseSettings || state.settings;
+    const dynamic = Object.assign({}, source.dynamic || {});
+    state.settings = normalizeSettings({
+      backgroundFolderId: source.backgroundFolderId,
+      logosFolderId: source.logosFolderId,
+      sponsorsFolderId: source.sponsorsFolderId,
+      backgroundImage: source.backgroundImage,
+      glassOpacity: "",
+      enableCustomBackground: source.enableCustomBackground,
+      adminEmails: source.adminEmails,
+      accentPreset: source.accentPreset,
+      accentExpandCards: source.accentExpandCards,
+      dynamic: dynamic
+    }, state.loggedUser);
+    state.settings.dynamic = dynamic;
+    hydrateVisualInputs();
+    applyGlass();
+    applyAccentPreset();
+    applyBackground(state.selected.background || state.settings.backgroundImage);
   }
 
   function generateMatches() {
@@ -2183,6 +2962,8 @@ window.APP_CONFIG = {
       return Object.assign({}, team, { id: team.id || createId("team" + index), ownerEmail: state.loggedUser && state.loggedUser.email ? state.loggedUser.email : (team.ownerEmail || "demo@ipv.mx") });
     }));
     state.matches = [];
+    state.matchUi.selectedMatchId = "";
+    state.matchUi.draftAccepted = {};
     persistData();
     renderAll();
     showMessage("Datos demo cargados", "success");
@@ -2195,7 +2976,8 @@ window.APP_CONFIG = {
 
   function renderCarousel(urls, className, altText) {
     const safeUrls = urls.filter(Boolean);
-    const group = safeUrls.map(function (url, index) {
+    const visualUrls = safeUrls.length && safeUrls.length < 4 ? safeUrls.concat(safeUrls, safeUrls) : safeUrls;
+    const group = visualUrls.map(function (url, index) {
       return "<div class='" + className + "'><img src='" + esc(safeImageUrl(url)) + "' alt='" + esc((altText || "logo") + " " + String(index + 1)) + "' onerror=\"this.src='" + PLACEHOLDER + "'\"></div>";
     }).join("");
     return "<div class='carousel-track'><div class='carousel-group'>" + group + "</div><div class='carousel-group' aria-hidden='true'>" + group + "</div></div>";
@@ -2205,28 +2987,43 @@ window.APP_CONFIG = {
     return (items || []).map(function (item) { return "<span class='alt-chip'>" + esc(item.label) + "</span>"; }).join("");
   }
 
+  function formatVenueLabel(match) {
+    return match.venue || "Por confirmar";
+  }
+
+  function getVenueLink(venue) {
+    const key = normalizeKey("sede" + String(venue || "").replace(/\s+/g, ""));
+    return (state.settings.dynamic && state.settings.dynamic[key]) || "";
+  }
+
   function renderMatchLogo(url, name) {
     if (url) return "<div class='match-team-logo'><img src='" + esc(safeImageUrl(url)) + "' alt='" + esc(name) + "' onerror=\"this.src='" + PLACEHOLDER + "'\"></div>";
     return "<div class='match-team-logo'>" + esc(initials(name)) + "</div>";
   }
 
-  function emptyGallery(text) { return "<div class='empty-shell'>" + esc(text || "No hay imagenes disponibles en la carpeta") + "</div>"; }
+  function emptyGallery(text) { return "<div class='empty-shell'>" + esc(text || "No hay imágenes disponibles en la carpeta") + "</div>"; }
   function skeletonGallery() { return "<div class='skeleton-card'></div><div class='skeleton-card'></div><div class='skeleton-card'></div>"; }
-  function requireSession() { if (state.loggedUser && state.loggedUser.email) return true; showMessage("Inicia sesion con Google para continuar", "error"); return false; }
+  function requireSession() { if (state.loggedUser && state.loggedUser.email) return true; showMessage("Inicia sesión con Google para continuar", "error"); return false; }
   function canEditTeam(team) { return isAdmin() || (state.loggedUser && team.ownerEmail === state.loggedUser.email); }
   function isAdmin() { const email = state.loggedUser && state.loggedUser.email ? state.loggedUser.email.toLowerCase() : ""; return Boolean(email && state.settings.adminEmails.indexOf(email) >= 0); }
   function isBlockedDate(date) { return state.adminConfig.blockedDates.some(function (item) { return item.date === date; }); }
 
-  function normalizeSettings(input) {
-    const local = readJson("ipv_visual_settings", {});
+  function normalizeSettings(input, loggedUser) {
+    const local = readJson(getUserVisualSettingsKey(loggedUser), {});
+    const configuredOpacity = String(input.glassOpacity || "").trim();
+    const defaultOpacity = getDefaultGlassOpacity(loggedUser, input.adminEmails);
+    const baseOpacity = configuredOpacity && configuredOpacity !== "0.6" ? configuredOpacity : defaultOpacity;
     return {
       backgroundFolderId: local.backgroundFolderId || input.backgroundFolderId || "",
       logosFolderId: local.logosFolderId || input.logosFolderId || "",
       sponsorsFolderId: local.sponsorsFolderId || input.sponsorsFolderId || "",
       backgroundImage: input.backgroundImage || "",
-      glassOpacity: String(local.glassOpacity || input.glassOpacity || "0.6"),
+      glassOpacity: String(local.glassOpacity || baseOpacity),
       enableCustomBackground: typeof local.enableCustomBackground === "boolean" ? local.enableCustomBackground : input.enableCustomBackground !== false,
-      adminEmails: parseEmails(input.adminEmails || [])
+      adminEmails: parseEmails(input.adminEmails || []),
+      accentPreset: local.accentPreset || input.accentPreset || "outline",
+      accentExpandCards: typeof local.accentExpandCards === "boolean" ? local.accentExpandCards : Boolean(input.accentExpandCards),
+      dynamic: Object.assign({}, input.dynamic || {})
     };
   }
 
@@ -2249,7 +3046,7 @@ window.APP_CONFIG = {
   function normalizeCapacity(input) {
     return (input || []).map(function (row) {
       if (Array.isArray(row)) return { venue: String(row[0] || ""), court: String(row[1] || ""), startTime: String(row[2] || ""), day: String(row[3] || ""), category: String(row[4] || ""), group: String(row[5] || "") };
-      return { venue: String(row["Sede"] || row.venue || ""), court: String(row["Cancha"] || row.court || ""), startTime: String(row["Horario_Inicial"] || row.startTime || ""), day: String(row["Dia"] || row.day || row.date || ""), category: String(row["Categoria"] || row.category || ""), group: String(row["Grupo"] || row.group || "") };
+      return { venue: String(row["Sede"] || row.venue || ""), court: String(row["Cancha"] || row.court || ""), startTime: String(row["Horario_Inicial"] || row.startTime || ""), day: String(row["Dia"] || row["Día"] || row.day || row.date || ""), category: String(row["Categoria"] || row["Categoría"] || row.category || ""), group: String(row["Grupo"] || row.group || "") };
     });
   }
 
@@ -2322,6 +3119,209 @@ window.APP_CONFIG = {
 })();
 
 </script>
+  <script>
+  (function () {
+    const sessionKey = (window.APP_CONFIG && window.APP_CONFIG.sessionStorageKey) || "ipv-matchmaking-session";
+    let googleReady = false;
+
+    function byId(id) {
+      return document.getElementById(id);
+    }
+
+    function getSession() {
+      try {
+        const raw = localStorage.getItem(sessionKey);
+        return raw ? JSON.parse(raw) : null;
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function setDebug(message) {
+      const debug = byId("authDebug");
+      if (!debug) return;
+      const text = String(message || "").trim();
+      debug.textContent = text;
+      debug.classList.toggle("hidden", !text);
+    }
+
+    function decodeJwt(token) {
+      try {
+        const payload = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+        return JSON.parse(decodeURIComponent(atob(payload).split("").map(function (char) {
+          return "%" + ("00" + char.charCodeAt(0).toString(16)).slice(-2);
+        }).join("")));
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function updateButtons() {
+      const user = getSession();
+      const hero = byId("heroLoginBtn");
+      const probe = byId("authProbeBtn");
+      const hiddenToggle = byId("loginToggle");
+      if (hero) {
+        hero.classList.toggle("is-google-icon", Boolean(user && user.email));
+        hero.innerHTML = user && user.email ? "<span class='google-mark' aria-hidden='true'>G</span>" : "Acceso con Google";
+      }
+      if (probe) {
+        probe.textContent = user && user.email ? "Panel de cuenta Google" : "Probar acceso Google";
+      }
+      if (hiddenToggle) {
+        hiddenToggle.textContent = user && user.email ? "Cuenta de Google" : "Acceso con Google";
+      }
+    }
+
+    function closeAuthPanel() {
+      const panel = byId("loginDropdown");
+      if (!panel) return;
+      panel.classList.add("hidden");
+      panel.style.display = "none";
+      delete panel.dataset.open;
+    }
+
+    function waitForGoogle() {
+      return new Promise(function (resolve, reject) {
+        let tries = 40;
+        (function check() {
+          if (window.google && window.google.accounts && window.google.accounts.id) return resolve();
+          tries -= 1;
+          if (!tries) return reject(new Error("GIS no disponible"));
+          setTimeout(check, 250);
+        })();
+      });
+    }
+
+    function handleCredential(response) {
+      setDebug("Respuesta recibida de Google. Validando credencial…");
+      const payload = decodeJwt(response && response.credential);
+      if (!payload || !payload.email) {
+        setDebug("Google respondió, pero no llegó un correo válido.");
+        return;
+      }
+      localStorage.setItem(sessionKey, JSON.stringify({
+        email: payload.email,
+        name: payload.name || payload.email
+      }));
+      setDebug("Sesión obtenida para: " + payload.email);
+      updateButtons();
+      window.location.reload();
+    }
+
+    function renderGoogleButton() {
+      const holder = byId("googleLoginButton");
+      const clientId = String((window.APP_CONFIG && window.APP_CONFIG.googleClientId) || "").trim();
+      if (!holder) return;
+      if (!clientId) {
+        setDebug("Falta googleClientId en config.js");
+        return;
+      }
+      setDebug("Esperando Google Identity Services…");
+      waitForGoogle().then(function () {
+        setDebug("GIS cargado. Inicializando…");
+        if (!googleReady) {
+          window.google.accounts.id.initialize({
+            client_id: clientId,
+            callback: handleCredential
+          });
+          googleReady = true;
+        }
+        holder.innerHTML = "";
+        window.google.accounts.id.renderButton(holder, {
+          theme: "outline",
+          size: "large",
+          shape: "pill",
+          locale: "es"
+        });
+        setDebug("Botón de Google renderizado. Selecciona tu cuenta.");
+      }).catch(function (error) {
+        setDebug("Error al cargar GIS: " + (error && error.message ? error.message : "desconocido"));
+      });
+    }
+
+    function renderPanel() {
+      const user = getSession();
+      const status = byId("authStatus");
+      const session = byId("userSession");
+      const userName = byId("userName");
+      const userEmail = byId("userEmail");
+      const googleButton = byId("googleLoginButton");
+      if (!status || !session || !googleButton) return;
+      if (user && user.email) {
+        setDebug("");
+        status.textContent = "Sesión activa. Puedes editar tus equipos.";
+        session.classList.remove("hidden");
+        if (userName) userName.textContent = user.name || "Usuario";
+        if (userEmail) userEmail.textContent = user.email || "";
+        googleButton.classList.add("hidden");
+        return;
+      }
+      status.textContent = "Inicia sesión para registrar o editar tus equipos.";
+      session.classList.add("hidden");
+      googleButton.classList.remove("hidden");
+      renderGoogleButton();
+    }
+
+    function handleLogout(event) {
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        if (typeof event.stopImmediatePropagation === "function") event.stopImmediatePropagation();
+      }
+      localStorage.removeItem(sessionKey);
+      updateButtons();
+      closeAuthPanel();
+      window.location.reload();
+      return false;
+    }
+
+    function openAuthPanel(event) {
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        if (typeof event.stopImmediatePropagation === "function") event.stopImmediatePropagation();
+      }
+      const panel = byId("loginDropdown");
+      if (!panel) return false;
+      const isOpen = panel.dataset.open === "true";
+      if (isOpen) {
+        closeAuthPanel();
+        return false;
+      }
+      panel.dataset.open = "true";
+      panel.classList.remove("hidden");
+      panel.style.display = "block";
+      panel.style.position = "fixed";
+      panel.style.top = "110px";
+      panel.style.right = "24px";
+      panel.style.zIndex = "99999";
+      renderPanel();
+      return false;
+    }
+
+    function bindStandaloneAuth() {
+      updateButtons();
+      const logoutBtn = byId("logoutBtn");
+      if (logoutBtn) {
+        logoutBtn.onclick = handleLogout;
+      }
+      document.addEventListener("click", function (event) {
+        const panel = byId("loginDropdown");
+        const hero = byId("heroLoginBtn");
+        const probe = byId("authProbeBtn");
+        if (!panel || panel.classList.contains("hidden")) return;
+        if (panel.contains(event.target)) return;
+        if (hero && hero.contains(event.target)) return;
+        if (probe && probe.contains(event.target)) return;
+        closeAuthPanel();
+      });
+    }
+
+    window.__openAuthPanel = openAuthPanel;
+    document.addEventListener("DOMContentLoaded", bindStandaloneAuth);
+  })();
+  </script>
 </body>
 </html>
 
