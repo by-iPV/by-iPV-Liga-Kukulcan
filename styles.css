@@ -77,7 +77,7 @@ img {
 }
 
 .card-glass {
-  background: rgba(255, 255, 255, var(--surface-glass-opacity, var(--glass-opacity)));
+  background: rgba(255, 255, 255, var(--glass-opacity));
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   border: 1px solid rgba(255, 255, 255, 0.15);
@@ -102,7 +102,7 @@ img {
   top: 18px;
   height: calc(100vh - 36px);
   padding: 22px 18px;
-  background: rgba(30, 42, 120, var(--surface-glass-opacity, var(--glass-opacity)));
+  background: rgba(30, 42, 120, var(--glass-opacity));
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   display: flex;
@@ -318,8 +318,8 @@ img {
   right: 28px;
   width: min(360px, calc(100vw - 40px));
   padding: 18px;
-  background: rgba(17, 24, 54, calc(var(--glass-opacity) + 0.12));
-  border: 1px solid rgba(255, 255, 255, calc(var(--glass-opacity) + 0.06));
+  background: rgba(17, 24, 54, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 20px;
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
@@ -333,19 +333,38 @@ img {
   margin-top: 12px;
   padding: 14px;
   border-radius: 18px;
-  background: rgba(255, 255, 255, calc(var(--glass-opacity) * 0.9));
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .auth-debug {
   margin-top: 10px;
   padding: 10px 12px;
   border-radius: 14px;
-  background: rgba(255, 255, 255, calc(var(--glass-opacity) * 0.8));
-  border: 1px solid rgba(255, 255, 255, calc(var(--glass-opacity) + 0.04));
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   color: #fff2c8;
   font-size: 0.85rem;
   line-height: 1.35;
   white-space: pre-wrap;
+}
+
+.auth-probe-btn {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 10000;
+  min-height: 50px;
+  padding: 0 18px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  background: linear-gradient(145deg, rgba(40, 198, 120, 0.96), rgba(14, 125, 78, 0.96));
+  color: #f5fff8;
+  font-weight: 800;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.28);
+}
+
+.auth-probe-btn:hover {
+  transform: translateY(-1px);
 }
 
 .btn {
@@ -712,7 +731,7 @@ img {
 }
 
 .visual-panel .gallery-section {
-  background: rgba(255, 255, 255, var(--surface-glass-opacity, 0.06));
+  background: rgba(255, 255, 255, 0.06);
   padding: 16px;
   border-radius: 18px;
   border: 1px solid rgba(255, 255, 255, 0.1);

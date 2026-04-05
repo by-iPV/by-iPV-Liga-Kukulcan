@@ -7,10 +7,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20260404-adminopacity1">
+  <link rel="stylesheet" href="styles.css?v=20260404-authfix3">
 </head>
 <body>
   <div id="appBackground" class="app-background"></div>
+  <button type="button" id="authProbeBtn" class="auth-probe-btn" onclick="return window.__openAuthPanel ? window.__openAuthPanel(event) : false;">Probar acceso Google</button>
   <div class="app-shell">
     <aside id="sidebar" class="sidebar card-glass">
       <div class="sidebar-brand">
@@ -43,12 +44,12 @@
         </div>
 
         <div class="topbar-actions">
-          <button type="button" id="loginToggle" class="btn btn-primary">Acceso con Google</button>
+          <button type="button" id="loginToggle" class="btn btn-primary" onclick="return window.__openAuthPanel ? window.__openAuthPanel(event) : false;">Acceso con Google</button>
         </div>
       </header>
 
       <section class="top-showcase">
-        <article id="heroSponsorsCard" class="hero-panel hero-side hero-sponsors card-glass">
+        <article class="hero-panel hero-side hero-sponsors card-glass">
           <div class="hero-panel-head">
             <div>
               <p id="heroSponsorsEyebrow" class="eyebrow">Patrocinadores</p>
@@ -62,14 +63,14 @@
           </div>
         </article>
 
-        <article id="heroMainCard" class="hero-panel hero-main card-glass">
+        <article class="hero-panel hero-main card-glass">
           <div class="hero-panel-head">
             <div>
               <p id="heroMainEyebrow" class="eyebrow">Temporada 2026</p>
               <h2 id="heroMainTitle">Matchmaking</h2>
             </div>
             <div class="hero-login-slot">
-              <button type="button" id="heroLoginBtn" class="btn btn-primary hero-login-btn">Acceso con Google</button>
+              <button type="button" id="heroLoginBtn" class="btn btn-primary hero-login-btn" onclick="return window.__openAuthPanel ? window.__openAuthPanel(event) : false;">Acceso con Google</button>
               <div id="loginDropdown" class="login-dropdown hidden">
                 <p id="authStatus" class="muted">Inicia sesión para registrar o editar tus equipos.</p>
                 <div id="authDebug" class="auth-debug hidden" aria-live="polite"></div>
@@ -85,7 +86,7 @@
           <p id="heroMainSubtitle" class="topbar-subtitle hidden">Matchmaking</p>
         </article>
 
-        <article id="heroTeamsCard" class="hero-panel hero-side hero-teams card-glass">
+        <article class="hero-panel hero-side hero-teams card-glass">
           <div class="hero-panel-head">
             <div>
               <p id="heroTeamsEyebrow" class="eyebrow">Equipos</p>
@@ -96,7 +97,7 @@
             <div class="empty-inline">Sin logos registrados.</div>
           </div>
         </article>
-        <section id="summaryQuickCard" class="summary-quick panel card-glass">
+        <section class="summary-quick panel card-glass">
         <div class="panel-head">
           <div>
             <p class="eyebrow">Resumen rápido</p>
@@ -126,7 +127,7 @@
       <main class="views-shell">
         <section id="view-registro" class="view active">
           <div class="view-grid view-grid-main">
-            <article id="registroPanel" class="panel card-glass">
+            <article class="panel card-glass">
               <div class="panel-head">
                 <div>
                   <p class="eyebrow">Registro</p>
@@ -215,7 +216,7 @@
               </form>
             </article>
 
-            <article id="visualPanel" class="panel card-glass visual-panel">
+            <article class="panel card-glass visual-panel">
               <div class="panel-head">
                 <div>
                   <p class="eyebrow">Selector visual</p>
@@ -510,8 +511,211 @@
     </div>
   </div>
 
-  <script src="config.js?v=20260404-adminopacity1"></script>
+  <script src="config.js?v=20260404-authfix3"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <script src="app.js?v=20260404-adminopacity1"></script>
+  <script src="app.js?v=20260404-authfix3"></script>
+  <script>
+  (function () {
+    const sessionKey = (window.APP_CONFIG && window.APP_CONFIG.sessionStorageKey) || "ipv-matchmaking-session";
+    let googleReady = false;
+
+    function byId(id) {
+      return document.getElementById(id);
+    }
+
+    function getSession() {
+      try {
+        const raw = localStorage.getItem(sessionKey);
+        return raw ? JSON.parse(raw) : null;
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function setDebug(message) {
+      const debug = byId("authDebug");
+      if (!debug) return;
+      const text = String(message || "").trim();
+      debug.textContent = text;
+      debug.classList.toggle("hidden", !text);
+    }
+
+    function decodeJwt(token) {
+      try {
+        const payload = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+        return JSON.parse(decodeURIComponent(atob(payload).split("").map(function (char) {
+          return "%" + ("00" + char.charCodeAt(0).toString(16)).slice(-2);
+        }).join("")));
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function updateButtons() {
+      const user = getSession();
+      const hero = byId("heroLoginBtn");
+      const probe = byId("authProbeBtn");
+      const hiddenToggle = byId("loginToggle");
+      if (hero) {
+        hero.classList.toggle("is-google-icon", Boolean(user && user.email));
+        hero.innerHTML = user && user.email ? "<span class='google-mark' aria-hidden='true'>G</span>" : "Acceso con Google";
+      }
+      if (probe) {
+        probe.textContent = user && user.email ? "Panel de cuenta Google" : "Probar acceso Google";
+      }
+      if (hiddenToggle) {
+        hiddenToggle.textContent = user && user.email ? "Cuenta de Google" : "Acceso con Google";
+      }
+    }
+
+    function closeAuthPanel() {
+      const panel = byId("loginDropdown");
+      if (!panel) return;
+      panel.classList.add("hidden");
+      panel.style.display = "none";
+      delete panel.dataset.open;
+    }
+
+    function waitForGoogle() {
+      return new Promise(function (resolve, reject) {
+        let tries = 40;
+        (function check() {
+          if (window.google && window.google.accounts && window.google.accounts.id) return resolve();
+          tries -= 1;
+          if (!tries) return reject(new Error("GIS no disponible"));
+          setTimeout(check, 250);
+        })();
+      });
+    }
+
+    function handleCredential(response) {
+      setDebug("Respuesta recibida de Google. Validando credencial…");
+      const payload = decodeJwt(response && response.credential);
+      if (!payload || !payload.email) {
+        setDebug("Google respondió, pero no llegó un correo válido.");
+        return;
+      }
+      localStorage.setItem(sessionKey, JSON.stringify({
+        email: payload.email,
+        name: payload.name || payload.email
+      }));
+      setDebug("Sesión obtenida para: " + payload.email);
+      updateButtons();
+      window.location.reload();
+    }
+
+    function renderGoogleButton() {
+      const holder = byId("googleLoginButton");
+      const clientId = String((window.APP_CONFIG && window.APP_CONFIG.googleClientId) || "").trim();
+      if (!holder) return;
+      if (!clientId) {
+        setDebug("Falta googleClientId en config.js");
+        return;
+      }
+      setDebug("Esperando Google Identity Services…");
+      waitForGoogle().then(function () {
+        setDebug("GIS cargado. Inicializando…");
+        if (!googleReady) {
+          window.google.accounts.id.initialize({
+            client_id: clientId,
+            callback: handleCredential
+          });
+          googleReady = true;
+        }
+        holder.innerHTML = "";
+        window.google.accounts.id.renderButton(holder, {
+          theme: "outline",
+          size: "large",
+          shape: "pill",
+          locale: "es"
+        });
+        setDebug("Botón de Google renderizado. Selecciona tu cuenta.");
+      }).catch(function (error) {
+        setDebug("Error al cargar GIS: " + (error && error.message ? error.message : "desconocido"));
+      });
+    }
+
+    function renderPanel() {
+      const user = getSession();
+      const status = byId("authStatus");
+      const session = byId("userSession");
+      const userName = byId("userName");
+      const userEmail = byId("userEmail");
+      const googleButton = byId("googleLoginButton");
+      if (!status || !session || !googleButton) return;
+      if (user && user.email) {
+        setDebug("");
+        status.textContent = "Sesión activa. Puedes editar tus equipos.";
+        session.classList.remove("hidden");
+        if (userName) userName.textContent = user.name || "Usuario";
+        if (userEmail) userEmail.textContent = user.email || "";
+        googleButton.classList.add("hidden");
+        return;
+      }
+      status.textContent = "Inicia sesión para registrar o editar tus equipos.";
+      session.classList.add("hidden");
+      googleButton.classList.remove("hidden");
+      renderGoogleButton();
+    }
+
+    function handleLogout(event) {
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        if (typeof event.stopImmediatePropagation === "function") event.stopImmediatePropagation();
+      }
+      localStorage.removeItem(sessionKey);
+      updateButtons();
+      closeAuthPanel();
+      window.location.reload();
+      return false;
+    }
+
+    function openAuthPanel(event) {
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        if (typeof event.stopImmediatePropagation === "function") event.stopImmediatePropagation();
+      }
+      const panel = byId("loginDropdown");
+      if (!panel) return false;
+      const isOpen = panel.dataset.open === "true";
+      if (isOpen) {
+        closeAuthPanel();
+        return false;
+      }
+      panel.dataset.open = "true";
+      panel.classList.remove("hidden");
+      panel.style.display = "block";
+      panel.style.position = "fixed";
+      panel.style.top = "110px";
+      panel.style.right = "24px";
+      panel.style.zIndex = "99999";
+      renderPanel();
+      return false;
+    }
+
+    function bindStandaloneAuth() {
+      updateButtons();
+      const logoutBtn = byId("logoutBtn");
+      if (logoutBtn) {
+        logoutBtn.onclick = handleLogout;
+      }
+      document.addEventListener("click", function (event) {
+        const panel = byId("loginDropdown");
+        const hero = byId("heroLoginBtn");
+        const probe = byId("authProbeBtn");
+        if (!panel || panel.classList.contains("hidden")) return;
+        if (panel.contains(event.target)) return;
+        if (hero && hero.contains(event.target)) return;
+        if (probe && probe.contains(event.target)) return;
+        closeAuthPanel();
+      });
+    }
+
+    window.__openAuthPanel = openAuthPanel;
+    document.addEventListener("DOMContentLoaded", bindStandaloneAuth);
+  })();
+  </script>
 </body>
 </html>
