@@ -68,7 +68,7 @@
   }
 
   function cacheElements() {
-    ["appBackground","sidebar","sidebarToggle","loginToggle","loginDropdown","authStatus","authDebug","googleLoginButton","userSession","userName","userEmail","logoutBtn","backendBadge","backendHint","teamCount","overlapCount","matchCount","sponsorsCarousel","headerTeamLogos","heroLoginBtn","authProbeBtn","teamForm","teamName","branch","category","date","startTime","endTime","unavailableDates","preferredDates","participateInMatching","teamLogoUrl","teamLogoPreview","saveTeamBtn","cancelEditBtn","messageBox","teamsTableBody","overlapsList","matchesList","viewEquiposList","viewPartidosList","visualConfigSection","backgroundSection","logosSection","sponsorsSection","backgroundFolderIdInput","logosFolderIdInput","sponsorsFolderIdInput","glassOpacityInput","enableCustomBackgroundInput","accentPresetSelect","accentExpandCardsInput","loadAllGalleriesBtn","saveVisualSettingsBtn","applyBackgroundBtn","applyTeamLogoBtn","reloadBackgroundGalleryBtn","reloadLogosGalleryBtn","reloadSponsorsGalleryBtn","backgroundGalleryStatus","backgroundGallery","logosGalleryStatus","logosGallery","sponsorsGalleryStatus","sponsorsGallery","adminForm","adminStartDate","adminEndDate","blockedDates","blockedDateInput","blockedReasonInput","matchingMode","groupCount","manualMatchingEnabled","addBlockedDateBtn","addRangeBtn","userBlockedView","blockedDatesReadable","generateMatchesBtn","saveMatchesBtn","acceptAllMatches","resetDemoBtn"].forEach(function (id) {
+    ["appBackground","sidebar","sidebarToggle","loginToggle","loginDropdown","authStatus","authDebug","googleLoginButton","userSession","userName","userEmail","logoutBtn","backendBadge","backendHint","teamCount","overlapCount","matchCount","sponsorsCarousel","headerTeamLogos","heroLoginBtn","heroSponsorsCard","heroMainCard","heroTeamsCard","summaryQuickCard","registroPanel","visualPanel","teamForm","teamName","branch","category","date","startTime","endTime","unavailableDates","preferredDates","participateInMatching","teamLogoUrl","teamLogoPreview","saveTeamBtn","cancelEditBtn","messageBox","teamsTableBody","overlapsList","matchesList","viewEquiposList","viewPartidosList","visualConfigSection","backgroundSection","logosSection","sponsorsSection","backgroundFolderIdInput","logosFolderIdInput","sponsorsFolderIdInput","glassOpacityInput","enableCustomBackgroundInput","accentPresetSelect","accentExpandCardsInput","loadAllGalleriesBtn","saveVisualSettingsBtn","applyBackgroundBtn","applyTeamLogoBtn","reloadBackgroundGalleryBtn","reloadLogosGalleryBtn","reloadSponsorsGalleryBtn","backgroundGalleryStatus","backgroundGallery","logosGalleryStatus","logosGallery","sponsorsGalleryStatus","sponsorsGallery","adminForm","adminStartDate","adminEndDate","blockedDates","blockedDateInput","blockedReasonInput","matchingMode","groupCount","manualMatchingEnabled","addBlockedDateBtn","addRangeBtn","userBlockedView","blockedDatesReadable","generateMatchesBtn","saveMatchesBtn","acceptAllMatches","resetDemoBtn"].forEach(function (id) {
       el[id] = document.getElementById(id);
     });
     el.navItems = Array.from(document.querySelectorAll(".nav-item"));
@@ -78,8 +78,8 @@
 
   function bindEvents() {
     el.sidebarToggle.addEventListener("click", toggleSidebar);
+    if (el.loginToggle) el.loginToggle.addEventListener("click", toggleLoginDropdown);
     el.heroLoginBtn.addEventListener("click", toggleLoginDropdown);
-    if (el.authProbeBtn) el.authProbeBtn.addEventListener("click", toggleLoginDropdown);
     document.addEventListener("click", handleClickOutside);
     el.logoutBtn.addEventListener("click", logout);
     el.navItems.forEach(function (button) {
@@ -99,7 +99,7 @@
     el.reloadSponsorsGalleryBtn.addEventListener("click", function () { loadGallery("sponsors", true); });
     el.saveVisualSettingsBtn.addEventListener("click", saveVisualSettings);
     el.glassOpacityInput.addEventListener("input", function () {
-      state.settings.glassOpacity = String(el.glassOpacityInput.value || getDefaultGlassOpacity(state.loggedUser, state.settings.adminEmails));
+      state.settings.glassOpacity = normalizeOpacityValue(el.glassOpacityInput.value) || getDefaultGlassOpacity(state.loggedUser, state.settings.adminEmails);
       applyGlass();
     });
     el.accentPresetSelect.addEventListener("change", function () {
@@ -155,9 +155,9 @@
   }
 
   async function loadSettings() {
-    state.settings = normalizeSettings(config.settings || {});
     const rows = state.configRows || await tryLoadConfigRows();
-    state.settings.dynamic = state.settings.dynamic || {};
+    const nextSettings = Object.assign({}, config.settings || {});
+    nextSettings.dynamic = Object.assign({}, nextSettings.dynamic || {});
     rows.forEach(function (row) {
       const key = normalizeKey(row[0]);
       const value = row[1];
@@ -165,19 +165,20 @@
       if (!value && value !== false) return;
       if (target === "adminEmails") {
         const emails = parseEmails(value);
-        if (emails.length) state.settings.adminEmails = emails;
+        if (emails.length) nextSettings.adminEmails = emails;
         return;
       }
       if (target === "glassOpacity") {
-        state.settings.glassOpacity = String(value);
+        nextSettings.glassOpacity = normalizeOpacityValue(value);
         return;
       }
-      if (Object.prototype.hasOwnProperty.call(state.settings, target) && String(value).trim()) {
-        state.settings[target] = target === "enableCustomBackground" ? !/false/i.test(String(value)) : String(value).trim();
+      if (Object.prototype.hasOwnProperty.call(nextSettings, target) && String(value).trim()) {
+        nextSettings[target] = target === "enableCustomBackground" ? !/false/i.test(String(value)) : String(value).trim();
         return;
       }
-      state.settings.dynamic[key] = String(value).trim();
+      nextSettings.dynamic[key] = String(value).trim();
     });
+    state.settings = normalizeSettings(nextSettings, state.loggedUser);
     hydrateVisualInputs();
     applyGlass();
     state.baseSettings = Object.assign({}, state.settings, { dynamic: Object.assign({}, state.settings.dynamic || {}) });
@@ -202,7 +203,7 @@
     el.backgroundFolderIdInput.value = state.settings.backgroundFolderId || "";
     el.logosFolderIdInput.value = state.settings.logosFolderId || "";
     el.sponsorsFolderIdInput.value = state.settings.sponsorsFolderId || "";
-    el.glassOpacityInput.value = state.settings.glassOpacity || getDefaultGlassOpacity(state.loggedUser, state.settings.adminEmails);
+    el.glassOpacityInput.value = normalizeOpacityValue(state.settings.glassOpacity) || getDefaultGlassOpacity(state.loggedUser, state.settings.adminEmails);
     el.enableCustomBackgroundInput.checked = Boolean(state.settings.enableCustomBackground);
     el.accentPresetSelect.value = state.settings.accentPreset || "outline";
     el.accentExpandCardsInput.checked = Boolean(state.settings.accentExpandCards);
@@ -229,6 +230,25 @@
     const email = currentUser && currentUser.email ? currentUser.email.toLowerCase() : "";
     const admins = parseEmails(adminEmails || (config.settings && config.settings.adminEmails) || []);
     return email && admins.indexOf(email) >= 0 ? "0.08" : "0.2";
+  }
+
+  function normalizeOpacityValue(value) {
+    const text = String(value == null ? "" : value).trim();
+    if (!text) return "";
+    const number = Number(text);
+    if (!Number.isFinite(number)) return "";
+    return String(Math.min(0.85, Math.max(0.02, number)));
+  }
+
+  function resolveGlassOpacity(inputOpacity, loggedUser, adminEmails, localOpacity) {
+    const savedOpacity = normalizeOpacityValue(localOpacity);
+    if (savedOpacity) return savedOpacity;
+    const defaultOpacity = getDefaultGlassOpacity(loggedUser, adminEmails);
+    const configuredOpacity = normalizeOpacityValue(inputOpacity);
+    if (!configuredOpacity) return defaultOpacity;
+    if (configuredOpacity === "0.6") return defaultOpacity;
+    if (configuredOpacity === "0.2" && defaultOpacity !== "0.2") return defaultOpacity;
+    return configuredOpacity;
   }
 
   async function getImages(folderId, forceRefresh) {
@@ -357,7 +377,7 @@
     state.settings.backgroundFolderId = el.backgroundFolderIdInput.value.trim();
     state.settings.logosFolderId = el.logosFolderIdInput.value.trim();
     state.settings.sponsorsFolderId = el.sponsorsFolderIdInput.value.trim();
-    state.settings.glassOpacity = String(el.glassOpacityInput.value || getDefaultGlassOpacity(state.loggedUser, state.settings.adminEmails));
+    state.settings.glassOpacity = normalizeOpacityValue(el.glassOpacityInput.value) || getDefaultGlassOpacity(state.loggedUser, state.settings.adminEmails);
     state.settings.enableCustomBackground = Boolean(el.enableCustomBackgroundInput.checked);
     state.settings.accentPreset = el.accentPresetSelect.value || "outline";
     state.settings.accentExpandCards = Boolean(el.accentExpandCardsInput.checked);
@@ -378,7 +398,9 @@
   }
 
   function applyGlass() {
-    document.documentElement.style.setProperty("--glass-opacity", String(state.settings.glassOpacity || getDefaultGlassOpacity(state.loggedUser, state.settings.adminEmails)));
+    const nextOpacity = normalizeOpacityValue(state.settings.glassOpacity) || getDefaultGlassOpacity(state.loggedUser, state.settings.adminEmails);
+    state.settings.glassOpacity = nextOpacity;
+    document.documentElement.style.setProperty("--glass-opacity", nextOpacity);
   }
 
   function applyAccentPreset() {
@@ -465,15 +487,19 @@
     renderBlockedDates();
     renderAdminVisibility();
     applyAccentPreset();
+    applyAdminOpacityTargets();
   }
 
   function renderAuth() {
     const isLogged = Boolean(state.loggedUser && state.loggedUser.email);
     el.loginDropdown.classList.toggle("hidden", !el.loginDropdown.dataset.open);
+    if (el.loginToggle) {
+      el.loginToggle.textContent = isLogged ? "Cuenta de Google" : "Acceso con Google";
+      el.loginToggle.setAttribute("aria-label", isLogged ? "Cuenta de Google" : "Acceso con Google");
+    }
     el.heroLoginBtn.classList.toggle("is-google-icon", isLogged);
     el.heroLoginBtn.innerHTML = isLogged ? "<span class='google-mark' aria-hidden='true'>G</span>" : "Acceso con Google";
     el.heroLoginBtn.setAttribute("aria-label", isLogged ? "Cuenta de Google" : "Acceso con Google");
-    if (el.authProbeBtn) el.authProbeBtn.textContent = isLogged ? "Panel de cuenta Google" : "Probar acceso Google";
     if (isLogged) {
       setAuthDebug("");
       el.authStatus.textContent = isAdmin() ? "Sesión activa como administrador." : "Sesión activa. Puedes editar tus equipos.";
@@ -654,6 +680,26 @@
     if (!admin && state.view === "config") setView("registro");
   }
 
+  function applyAdminOpacityTargets() {
+    const adminOpacity = isAdmin() ? "0.08" : "";
+    const targets = [
+      el.sidebar,
+      el.heroSponsorsCard,
+      el.heroMainCard,
+      el.heroTeamsCard,
+      el.summaryQuickCard,
+      el.registroPanel,
+      el.visualPanel,
+      el.visualConfigSection,
+      el.logosSection
+    ];
+    targets.forEach(function (node) {
+      if (!node) return;
+      if (adminOpacity) node.style.setProperty("--surface-glass-opacity", adminOpacity);
+      else node.style.removeProperty("--surface-glass-opacity");
+    });
+  }
+
   function renderLogoPreview() {
     const url = el.teamLogoUrl.value || state.selected.teamLogo;
     if (!url) {
@@ -695,7 +741,7 @@
     if (next) {
       el.loginDropdown.dataset.open = "true";
       el.loginDropdown.classList.remove("hidden");
-      setAuthDebug("Abriendo panel de acceso…");
+      setAuthDebug("");
       initGoogleAuth();
       return;
     }
@@ -710,8 +756,8 @@
 
   function handleClickOutside(event) {
     if (el.loginDropdown.classList.contains("hidden")) return;
-    const clickedProbe = el.authProbeBtn ? el.authProbeBtn.contains(event.target) : false;
-    if (!el.loginDropdown.contains(event.target) && !el.heroLoginBtn.contains(event.target) && !clickedProbe) {
+    const clickedTopbarLogin = el.loginToggle ? el.loginToggle.contains(event.target) : false;
+    if (!el.loginDropdown.contains(event.target) && !el.heroLoginBtn.contains(event.target) && !clickedTopbarLogin) {
       closeLoginDropdown();
     }
   }
@@ -723,21 +769,20 @@
       return;
     }
     if (el.googleLoginButton.dataset.bound) {
-      setAuthDebug("Botón de Google listo.");
+      setAuthDebug("");
       return;
     }
-    setAuthDebug("Esperando Google Identity Services…");
+    setAuthDebug("");
     waitForGoogle().then(function () {
       if (!window.google || !window.google.accounts || !window.google.accounts.id) {
         setAuthDebug("GIS no está disponible en window.google");
         return;
       }
-      setAuthDebug("GIS cargado. Inicializando…");
       window.google.accounts.id.initialize({ client_id: clientId, callback: handleCredentialResponse });
       el.googleLoginButton.innerHTML = "";
       window.google.accounts.id.renderButton(el.googleLoginButton, { theme: "outline", size: "large", shape: "pill", locale: "es" });
       el.googleLoginButton.dataset.bound = "true";
-      setAuthDebug("Botón de Google renderizado. Selecciona tu cuenta.");
+      setAuthDebug("");
     }).catch(function (error) {
       setAuthDebug("Error al cargar GIS: " + (error && error.message ? error.message : "desconocido"));
     });
@@ -745,7 +790,7 @@
 
   function handleCredentialResponse(response) {
     try {
-      setAuthDebug("Respuesta recibida de Google. Validando credencial…");
+      setAuthDebug("");
       const payload = decodeJwt(response && response.credential);
       if (!payload || !payload.email) {
         setAuthDebug("Google respondió, pero no llegó un correo válido.");
@@ -754,7 +799,7 @@
       }
       state.loggedUser = { email: payload.email, name: payload.name || payload.email };
       localStorage.setItem(config.sessionStorageKey || "matchmaking-session", JSON.stringify(state.loggedUser));
-      setAuthDebug("Sesión obtenida para: " + state.loggedUser.email);
+      setAuthDebug("");
       refreshVisualSettingsForCurrentUser();
       closeLoginDropdown();
       renderAll();
@@ -1019,15 +1064,13 @@
 
   function normalizeSettings(input, loggedUser) {
     const local = readJson(getUserVisualSettingsKey(loggedUser), {});
-    const configuredOpacity = String(input.glassOpacity || "").trim();
-    const defaultOpacity = getDefaultGlassOpacity(loggedUser, input.adminEmails);
-    const baseOpacity = configuredOpacity && configuredOpacity !== "0.6" ? configuredOpacity : defaultOpacity;
+    const baseOpacity = resolveGlassOpacity(input.glassOpacity, loggedUser, input.adminEmails, local.glassOpacity);
     return {
       backgroundFolderId: local.backgroundFolderId || input.backgroundFolderId || "",
       logosFolderId: local.logosFolderId || input.logosFolderId || "",
       sponsorsFolderId: local.sponsorsFolderId || input.sponsorsFolderId || "",
       backgroundImage: input.backgroundImage || "",
-      glassOpacity: String(local.glassOpacity || baseOpacity),
+      glassOpacity: baseOpacity,
       enableCustomBackground: typeof local.enableCustomBackground === "boolean" ? local.enableCustomBackground : input.enableCustomBackground !== false,
       adminEmails: parseEmails(input.adminEmails || []),
       accentPreset: local.accentPreset || input.accentPreset || "outline",
@@ -1080,7 +1123,7 @@
 
   function serializeBlockedDates(items) { return (items || []).map(function (item) { return item.date + (item.reason ? " | " + item.reason : ""); }).join(", "); }
   function parseList(value) { if (Array.isArray(value)) return value.filter(Boolean); return String(value || "").split(/[\n,]/).map(function (item) { return item.trim(); }).filter(Boolean); }
-  function parseEmails(value) { if (Array.isArray(value)) return value.map(function (item) { return String(item).trim().toLowerCase(); }).filter(Boolean); return String(value || "").split(/[\n,]/).map(function (item) { return item.trim().toLowerCase(); }).filter(Boolean); }
+  function parseEmails(value) { if (Array.isArray(value)) return value.map(function (item) { return String(item).trim().toLowerCase(); }).filter(Boolean); return String(value || "").split(/[\n,;]+/).map(function (item) { return item.trim().toLowerCase(); }).filter(Boolean); }
   function fillSelect(select, items, placeholder) { select.innerHTML = "<option value=''>" + esc(placeholder) + "</option>" + items.map(function (item) { return "<option value='" + esc(item) + "'>" + esc(item) + "</option>"; }).join(""); }
   function createId(prefix) { return prefix + "-" + Date.now() + "-" + Math.random().toString(36).slice(2, 8); }
   function normalizeKey(value) { return String(value || "").trim().toLowerCase().replace(/[_\s]/g, ""); }
