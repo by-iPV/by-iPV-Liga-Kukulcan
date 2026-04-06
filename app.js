@@ -4,9 +4,13 @@
   const PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400' viewBox='0 0 600 400'%3E%3Crect width='600' height='400' fill='%23131d42'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23fbb400' font-family='Arial' font-size='28'%3ESin imagen%3C/text%3E%3C/svg%3E";
   const IPV_LOGO = "assets/logo-ipv-oficial.png";
   const TEAM_LOGO_ALIASES = {
+    "felipinos": ["felipinos", "club felipinos"],
+    "centinelas": ["centinelas", "pretorianas", "pretorianos", "centinelas by ipv", "centinelas cdk", "centinelas mensajero"],
     "aguilas": ["aguilas"],
     "ardillas": ["ardillas", "inst montelibano", "monte libano"],
-    "axolots": ["axolots"],
+    "axolots": ["axolots", "esa axolots"],
+    "legacy": ["legacy"],
+    "bats": ["bats"],
     "gacelobos": ["gacelobos"],
     "zorros cahad": ["zorros", "cahad"],
     "slayers": ["slayers"],

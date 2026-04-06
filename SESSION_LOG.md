@@ -718,3 +718,17 @@ Uso:
     - `Vista alterna`
   - verificacion:
     - `node --check app.js`
+- Actividad 3 concluida: `Ampliacion del mapeo de logos`
+  - se agregaron aliases nuevos para aprovechar mejor logos ya presentes o probables en la galeria:
+    - `Felipinos`
+    - `Centinelas` / `Pretorianas` / `Pretorianos`
+    - `Legacy`
+    - `Bats`
+    - `Axolots` / `ESA Axolots`
+  - esto mejora especialmente:
+    - `Cargar demo`
+    - `Generar partidos`
+    - `Equipos > Listado visual`
+    - `Matching > Partidos sugeridos`
+  - verificacion:
+    - `node --check app.js`
