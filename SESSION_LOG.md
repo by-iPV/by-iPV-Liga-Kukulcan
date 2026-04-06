@@ -1,0 +1,710 @@
+# Session Log
+
+Uso:
+- Este archivo resume el estado del proyecto para retomar trabajo rapido en otra sesion.
+- Formato base por entrada:
+  - que se hizo
+  - que quedo pendiente
+  - siguiente paso
+  - decisiones tomadas
+
+## 2026-04-04
+
+### Que se hizo
+- Se recupero contexto del repo `C:\2026\ipv-matchmaking`.
+- Se revisaron `index.html`, `styles.css`, `app.js`, `config.js` y el historial reciente de `git`.
+- Se detecto que el flujo de acceso con Google estaba duplicado entre `index.html` y `app.js`.
+- Se elimino el script inline de autenticacion en `index.html`.
+- Se quitaron los `onclick` inline del flujo de auth en `index.html`.
+- Se conecto `loginToggle` al mismo dropdown de autenticacion manejado por `app.js`.
+- Se actualizaron las etiquetas del boton de login segun el estado de sesion.
+- Se ajusto el cierre del dropdown para respetar tambien el boton superior.
+- Se verifico la sintaxis con `node --check app.js`.
+- Se decidio crear dos bitacoras persistentes en el repo: una de chat y otra operativa.
+- Se elimino el boton verde flotante usado para pruebas de conexion con Google, junto con sus referencias y estilos.
+- Se confirmo que el flujo actual de Google ya esta encapsulado en `app.js`.
+- Se comparo la mecanica local de Google con la `v0.1` publicada y se confirmo consistencia funcional, aunque la version local ya esta mas limpia y centralizada.
+- Se audito toda la logica de opacidad y se detecto inconsistencia en el default por rol.
+- Se corrigio la carga de settings para que `adminEmails` y `glassOpacity` se resuelvan en el orden correcto.
+- Se agrego resolucion centralizada de opacidad con sanitizacion de valores y fallback correcto por rol.
+- Se hizo consistente el comportamiento del slider, `applyGlass`, `saveVisualSettings` y la hidratacion visual al cambiar de usuario o cargar settings remotos.
+- Se dejo como criterio efectivo:
+  - admin sin preferencia local => `0.08`
+  - no admin sin preferencia local => `0.2`
+  - preferencia local guardada => tiene prioridad
+  - valores legacy ambiguos => se normalizan o caen al default por rol
+- Se verifico la sintaxis final con `node --check app.js`.
+- Se eliminaron los mensajes transitorios de apoyo del flujo de Google (`Botón de Google listo.` y otros similares), dejando `authDebug` solo para errores reales.
+- Se ajusto el dropdown de sesion para que su fondo y bloques internos respondan tambien a `--glass-opacity`.
+- Se reforzo el parseo de `adminEmails` para aceptar tambien separacion por `;`, evitando falsos no-admin por formato de captura en Settings.
+- Se hizo inventario inicial de objetos/secciones sujetas a ocultarse o bloquearse por rol (`admin`) y por condicion futura de `pre-registro`.
+- Se reviso la arquitectura con enfoque de encapsulacion y se confirmo que la opacidad ya esta cerca de una politica centralizada, mientras que permisos sigue disperso y conviene unificarlo antes del bloque de `pre-registro`.
+- Se agrego al backlog funcional el modo `dashboard sin conexion / solo consulta`, orientado a consultar `equipos inscritos` y `partidos agendados` sin capacidades de escritura.
+- Se amplio el inventario del modo `sin conexion / solo consulta` con mas candidatos visibles: `resumen rapido`, `listado visual de equipos`, `detalle de partidos`, `fechas bloqueadas` y `ajustes visuales/sesion previa`.
+- Se detecto una limitacion actual importante: aunque la app persiste `teams`, `matches` y `adminConfig` en `localStorage`, todavia no hace fallback automatico a esos datos cuando falla la red y el `appsScriptUrl` permanece configurado.
+- Se ajusto el criterio funcional de `Fechas bloqueadas / calendario operativo`: visible solo para `admin` y para el usuario propietario de esos datos.
+- Se registro una referencia visual de la `v0.1` publicada: la seccion `hero` se percibe como baseline de menor opacidad frente a otras superficies del dashboard.
+- Se registro una referencia visual de la `v0.2` local: la tarjeta de dialogo de conexion ahora funciona como nuevo baseline de menor opacidad para comparar el resto de superficies.
+- Se implemento una primera capa encapsulada de opacidad por superficie para admin, aplicada al final de `renderAll()` sobre los targets visuales definidos en el ejercicio comparativo.
+- Se reviso el comportamiento sin conexion y se detecto que la inicializacion remota podia dejar la app en estado parcial antes de completar `renderAll()`.
+- Se corrigio `init()` para renderizar una primera vez antes del bootstrap remoto.
+- Se corrigio `loadBootstrap()` para usar snapshot local cuando falle la conexion remota, con leyenda de estado `Sin conexión`.
+- Se hizo rollback selectivo y manual del experimento de opacidad admin por superficie.
+- Se retiraron la funcion `applyAdminOpacityTargets()`, su llamada en `renderAll()`, los ids agregados solo para ese experimento y la variable CSS `--surface-glass-opacity`.
+- Se mantuvieron los demas cambios del proyecto, especialmente auth consolidado y fallback local de bootstrap.
+- Se realizo rollback manual a `v0.2` local, entendido como el estado previo al rollback selectivo y previo al ajuste offline posterior.
+- Se restauro la capa de opacidad admin por superficie (`applyAdminOpacityTargets()` y `--surface-glass-opacity`).
+- Se retiraron los ajustes posteriores de fallback offline para volver a ese snapshot local.
+- Se agrego la etiqueta `v0.3.1` sobre el commit `6713f1a`, manteniendo tambien la etiqueta `v0.3`.
+- Se verifico la presencia del commit historico `1fe288f50605c17ccb3341e34252856082ea5531` (`Integrar cambios locales de la version actual`).
+- Se analizo visualmente la `v0.3.1` desplegada en GitHub:
+  - en estado conectado, el dialogo de sesion/conexion se percibe consistente con el ultimo estado local recuperado respecto a opacidad
+  - en estado desconectado, el flujo de Google si funciona en produccion y muestra correctamente el prompt/chooser de cuenta
+- Se documento una lectura preliminar de permisos en estado desconectado:
+  - se ocultan acciones criticas como `Guardar ajustes visuales` y `Usar como logo`
+  - el boton superior vuelve a `Acceso con Google`
+  - el panel de sesion cambia a modo de inicio de sesion
+  - siguen visibles controles interactivos del formulario principal y del selector visual, por lo que el estado actual sigue siendo de ocultamiento parcial, no de solo lectura integral
+- Se creo un entorno aislado de prueba desde el commit `1fe288f50605c17ccb3341e34252856082ea5531` mediante `git worktree`, en:
+  - `C:\2026\ipv-matchmaking\.worktrees\commit-1fe288f`
+- Se confirmo que `1fe288f` es un buen punto de comparacion para el problema del dialogo local, porque:
+  - conserva la capa anterior de autenticacion inline en `index.html`
+  - mientras que `6713f1a` ya depende de la consolidacion del auth en `app.js`
+- Se verifico visualmente que en `1fe288f` la conexion/desconexion con Google si funciona en local.
+- Se documento el estado de permisos visible en `1fe288f`:
+  - con sesion conectada se muestran acciones autenticadas como `Guardar ajustes visuales`, `Guardar equipo` y `Usar como logo`
+  - el panel de sesion entra en modo autenticado y permite `Cerrar sesión`
+  - las secciones principales (`Registro`, `Selector visual`, `Sponsors`, `Resumen`, `Equipos`) siguen visibles
+  - la separacion admin depende de `admin-only` y de `renderAdminVisibility()`
+  - la separacion usuario autenticado depende de `renderConnectedVisibility()`
+  - el modelo sigue siendo de ocultamiento parcial de acciones, no de una capa unificada de permisos por estado
+- Se fijo con mayor claridad el objetivo para estado `desconectado / solo lectura`:
+  - visible en lectura:
+    - `Sponsors`
+    - `Resumen rapido`
+    - `Equipos inscritos`
+    - vista/listado de `Equipos`
+    - vista de `Partidos agendados` y `Detalle del partido`
+    - acceso al panel/boton de `Acceso con Google`
+  - no visible o no editable:
+    - `Configuracion admin`
+    - `Guardar ajustes visuales`
+    - `Guardar equipo`
+    - `Usar como logo`
+    - `Cargar demo`
+    - formulario de registro editable
+    - checkbox `Participar en matching automatico`
+    - inputs de carpetas, botones de aplicar/actualizar y controles de galerias
+    - controles de administracion visual
+  - excepcion:
+    - `Fechas bloqueadas / calendario operativo` solo para admin o para el usuario duenio de esos datos
+- Se documento que la captura de `1fe288f` desconectado no cumple el objetivo de solo lectura, porque aun expone elementos de admin, botones de accion y formulario editable.
+- Se agrego un nuevo modo funcional pendiente con potencial comunitario:
+  - `Modo colaborativo`
+  - alta de canchas
+  - alta de horarios disponibles para retas / amistosos
+  - alta de equipos con categoria / nivel / logros
+- Se tomo este modo como una linea futura separada del matchmaking base, mas orientada a comunidad, descubrimiento y coordinacion abierta.
+- Se ajusto el criterio sobre `Cargar demo`:
+  - se conserva como herramienta util para usuarios
+  - deja de tratarse como candidato automatico a ocultar en todos los estados
+  - queda pendiente fortalecer su contenido con mas ramas, categorias, equipos, logros y proximos eventos
+- Se reviso la base actual para el futuro flujo tipo `Agendar` y se identifico informacion ya disponible:
+  - categorias base en codigo:
+    - `Libre`
+    - `Juvenil`
+    - `Infantil Mayor`
+  - ramas base en codigo:
+    - `varonil`
+    - `femenil`
+    - `mixto`
+  - equipos demo actuales:
+    - `Centinelas Pretorianas`
+    - `Felipinos Preparatoria`
+    - `Centinelas CDK`
+  - estructura de equipo ya modelada:
+    - nombre
+    - rama
+    - categoria
+    - fecha
+    - horarios
+    - logo
+    - ownerEmail
+    - fechas preferentes / no disponibles
+  - estructura operativa de capacidad ya consumida por el motor:
+    - `Sede`
+    - `Cancha`
+    - `Horario_Inicial`
+    - `Dia`
+    - `Categoria`
+    - `Grupo`
+- Se confirmo que hoy no hay en el repo un catalogo detallado de:
+  - costos de arbitraje
+  - reglas de cobro por categoria / rama / sede / horario
+  - nivel competitivo, logros y proximos eventos por equipo
+- Se registro como viable un futuro flujo `Agendar`:
+  - la accion en la app no se llamaria `Comprar`
+  - serviria para comprometer un horario o disponibilidad
+  - podria enlazar despues a la tienda en linea de la DGD para completar el pago fuera de esta app
+- Se documento una ruta de evolucion para `Cargar demo`:
+  - recibir equipos y partidos de un evento pasado
+  - tratarlos como mini base historica
+  - mover fechas hacia adelante segun la fecha actual
+  - ejecutar el motor de matchmaking sobre esos datos para simular un evento proximo inmediato
+- Se hizo una primera prueba de extraccion externa sobre:
+  - `https://ipv.clupik.app/es/games?show=all&from=2026-01-24T06:00:00.000Z&to=2026-01-25T05:59:59.999Z`
+- Resultado de la prueba:
+  - la pagina publica si es accesible
+  - el HTML inicial contiene metadatos embebidos del club (`clupik-app-front-state`)
+  - no contiene el listado de partidos ya renderizado
+  - la vista opera como SPA y los partidos aparentan cargarse por JavaScript / API
+- Datos rescatables en esta primera pasada:
+  - `clubId`: `24706`
+  - club: `Instituto Pretoriano de Voleibol`
+  - secciones detectadas:
+    - `Comunidad de Voleibol`
+    - `Voleibol - Temporada 2026`
+  - `gamesMenuActivation: true`
+  - moneda: `MXN`
+- Conclusion operativa:
+  - Clupik si parece fuente viable
+  - para extraer partidos de forma util sera necesario localizar el endpoint de datos o contar con exportes/capturas complementarias
+- Se confirmo por el usuario una categoria real adicional que hoy no esta en el catalogo del proyecto:
+  - `Preparatoria`
+- Se logro extraer desde captura una mini base visible de partidos reales del `24 enero 2026`:
+  - sede:
+    - `Cancha Palacio Municipal - Municipio Tixkokob`
+  - evento / referencia:
+    - `Voleibol - 1er Cuadrangular Voleibol Tixkokob 2026 - by iPV`
+  - texto visible de agrupacion:
+    - `Secundaria/Preparatoria`
+  - equipos visibles:
+    - `Felipinos Preparatoria`
+    - `Centinelas/Pretorianas by iPV`
+    - `Felipinos Secundaria`
+    - `Centinelas Prepa - CDK`
+  - partidos visibles:
+    - `Felipinos Preparatoria` 2 - 0 `Centinelas/Pretorianas by iPV`
+    - `Felipinos Secundaria` 0 - 2 `Centinelas Prepa - CDK`
+    - `Felipinos Secundaria` 0 - 2 `Centinelas/Pretorianas by iPV`
+    - `Felipinos Preparatoria` 0 - 2 `Centinelas Prepa - CDK`
+- Esta informacion ya es util para:
+  - enriquecer el catalogo de categorias reales
+  - robustecer `Cargar demo`
+  - construir un dataset historico base para simulaciones futuras con fechas desplazadas
+- Se reviso `c:\2026\Profesional\Diseño_WEB\plantilla_iPV.html` como prueba de seguridad de contenido.
+- Hallazgo principal:
+  - las medidas actuales de bloqueo de `contextmenu`, `copy`, `cut`, `paste`, `selectstart` y `dblclick` son cosmeticas y no impiden acceso real a los datos
+- Datos / referencias sensibles hoy expuestos en cliente:
+  - `MASTER_SHEET_ID`
+  - `MASTER_URL`
+  - endpoint directo `gviz` de Google Sheets
+  - semantica de columnas del sheet:
+    - `mensaje`
+    - `intervalo`
+    - `maxApariciones`
+    - `ancla`
+    - `modo`
+  - variables/logica proyectadas para eventos:
+    - `eventId`
+    - `sheetId`
+    - `status`
+    - `masterEventName`
+- Riesgo identificado:
+  - si el navegador ya conoce el ID del sheet o el endpoint fuente, ocultar botones no evita que un no-admin consulte o reconstruya los datos
+- Recomendacion estructural:
+  - mover acceso a Sheets y resolucion de datos al backend / Apps Script
+  - exponer al cliente solo payload saneado y minimo
+  - separar endpoints `publicos` de endpoints `admin`
+  - validar rol de admin en servidor antes de devolver datos sensibles
+- Tambien se detectaron problemas tecnicos en el HTML de pruebas:
+  - sintaxis invalida (`const IPV_CONFIG.mensaje = ...`)
+  - variables no definidas (`cols`, `masterEventId`, `status`, `masterEventName`, `sheetId`)
+  - redefinicion de `showIPVAlert()`
+  - referencias a elementos no presentes (`ipvAlert`, `eventTitle`)
+- Se formalizo un criterio mayor de proteccion:
+  - no solo proteger datos visibles, sino toda regla de negocio y codigo de valor
+  - evitar que al copiar texto, guardar la pagina o inspeccionar el HTML se reconstruya facilmente:
+    - logica de matching
+    - permisos
+    - costos / arbitraje
+    - reglas operativas
+    - IDs y origenes sensibles
+- Principio rector acordado:
+  - el cliente pide
+  - el backend decide
+  - el cliente solo muestra el minimo necesario
+- Se definio una ruta gradual de endurecimiento, pensada para no romper la base actual del snapshot `1fe288f`:
+  - Fase 1:
+    - mover fuera del frontend el know-how principal:
+      - reglas de negocio
+      - logica de matching
+      - permisos
+      - IDs / URLs / acceso directo a Sheets
+  - Fase 2:
+    - separar payloads por nivel de acceso:
+      - publico
+      - autenticado
+      - admin
+  - Fase 3:
+    - unificar permisos en estados formales:
+      - guest
+      - autenticado
+      - con pre-registro
+      - admin
+      - offline-readonly
+  - Fase 4:
+    - robustecer demo y contenido menos sensible
+  - Fase 5:
+    - dejar bloqueos de copia/seleccion solo como capa disuasiva, no como defensa principal
+- Se agrego una primera base manual normalizada a partir de texto/copias de Clupik:
+  - fecha:
+    - `2026-01-24`
+  - categorias / agrupaciones detectadas:
+    - `Preparatoria`
+    - `Secundaria`
+    - `Secundaria/Preparatoria`
+  - equipos unicos:
+    - `Felipinos Preparatoria`
+    - `Centinelas/Pretorianas by iPV`
+    - `Felipinos Secundaria`
+    - `Centinelas Prepa - CDK`
+  - sede:
+    - `Cancha Palacio Municipal - Municipio Tixkokob`
+  - evento:
+    - `Voleibol - 1er Cuadrangular Voleibol Tixkokob 2026 - by iPV`
+  - partidos:
+    - `Felipinos Preparatoria` 2 - 0 `Centinelas/Pretorianas by iPV`
+    - `Felipinos Secundaria` 0 - 2 `Centinelas Prepa - CDK`
+    - `Felipinos Secundaria` 0 - 2 `Centinelas/Pretorianas by iPV`
+    - `Felipinos Preparatoria` 0 - 2 `Centinelas Prepa - CDK`
+- Se detecto que las URLs de imagen compartidas apuntan a `clubTransparent` de Clupik, por lo que todavia no se asumen como logos definitivos de cada equipo.
+- Se agrego un segundo evento manual al dataset base:
+  - fecha:
+    - `2026-01-31`
+  - categoria confirmada:
+    - `Preparatoria`
+  - equipos nuevos:
+    - `Benjis Infantil`
+    - `Benjis`
+    - `Legacy`
+  - equipo repetido / consolidado:
+    - `Felipinos Preparatoria`
+  - sede:
+    - `Cancha Palacio Municipal - Municipio Tixkokob`
+  - evento:
+    - `Voleibol - Temporada 2026 - 2° Cuadrangular Voleibol Tixkokob 2026 - by iPV`
+  - partidos:
+    - `Felipinos Preparatoria` 2 - 0 `Benjis Infantil`
+    - `Benjis` 2 - 0 `Legacy`
+    - `Benjis Infantil` 0 - 2 `Legacy`
+    - `Felipinos Preparatoria` 0 - 2 `Benjis`
+- Se corrigio la clasificacion del segundo evento: queda tratado especificamente como categoria `Preparatoria`.
+- Se agrego un tercer evento manual al dataset base:
+  - rango visible:
+    - `23 - 29 dic.`
+  - fecha visible de partidos:
+    - `2025-12-28`
+  - categoria confirmada:
+    - `Mixto`
+  - equipos unicos:
+    - `Centinelas/Mensajero`
+    - `Gacelobos`
+    - `Axolots`
+    - `Águilas`
+    - `Gladiadores`
+    - `FUNADOS ALB`
+    - `Ardillas`
+  - sedes visibles:
+    - `CDK Cancha 3 (Complejo Deportivo Kukulcán)`
+    - `CDK Cancha 1 (Complejo Deportivo Kukulcán)`
+  - evento:
+    - `Juegos Conmemorativos Centinelas-Mensajero-Pretorianos 2ª Edición 2024-2025`
+  - partidos:
+    - `Centinelas/Mensajero` 0 - 2 `Gacelobos`
+    - `Axolots` 0 - 2 `Gacelobos`
+    - `Águilas` 0 - 2 `Gladiadores`
+    - `Águilas` 0 - 2 `FUNADOS ALB`
+    - `Gladiadores` 2 - 0 `FUNADOS ALB`
+    - `Gacelobos` 1 - 2 `Gladiadores`
+    - `FUNADOS ALB` 2 - 1 `Gacelobos`
+    - `Centinelas/Mensajero` 2 - 0 `Ardillas`
+- Se agrego un requisito de diseño/datos para partidos sancionados o concluidos:
+  - permitir asociar a cada partido un enlace a Drive
+  - el recurso puede ser foto o PDF
+  - el destino representa la `hoja de anotación del partido`
+- Este enlace se toma como elemento de alto valor para:
+  - historial de partidos
+  - evidencia documental
+  - experiencia deportiva local diferenciada
+  - enriquecimiento futuro del demo y de partidos ya celebrados
+- Se agrego un subconjunto adicional del evento `2025-12-28`, ahora clasificado como:
+  - `3ª Fuerza Varonil`
+- Equipos extraidos / consolidados en este subconjunto:
+  - `AXOLOTS (Promocional/Preparatoria) VARONIL`
+  - `Zorros CAHAD (3ª Fuerza) VARONIL`
+  - `π Pretorianos (3ª Fuerza) VARONIL`
+  - `Bats '07 - '08 (3ª Fuerza) VARONIL`
+  - `AXOLOTS (3°Fuerza) VARONIL`
+  - `Churpios(3° Fuerza)VARONIL`
+- Sede:
+  - `CDK Cancha 2 (Complejo Deportivo Kukulcán)`
+- Evento:
+  - `Juegos Conmemorativos Centinelas-Mensajero-Pretorianos 2ª Edición 2024-2025`
+- Partidos agregados:
+  - `AXOLOTS (Promocional/Preparatoria) VARONIL` 1 - 2 `Zorros CAHAD (3ª Fuerza) VARONIL`
+  - `π Pretorianos (3ª Fuerza) VARONIL` 2 - 1 `Zorros CAHAD (3ª Fuerza) VARONIL`
+  - `AXOLOTS (Promocional/Preparatoria) VARONIL` 0 - 2 `π Pretorianos (3ª Fuerza) VARONIL`
+  - `Bats '07 - '08 (3ª Fuerza) VARONIL` 2 - 0 `Zorros CAHAD (3ª Fuerza) VARONIL`
+  - `Bats '07 - '08 (3ª Fuerza) VARONIL` 2 - 0 `AXOLOTS (Promocional/Preparatoria) VARONIL`
+  - `π Pretorianos (3ª Fuerza) VARONIL` 0 - 2 `Bats '07 - '08 (3ª Fuerza) VARONIL`
+  - `Zorros CAHAD (3ª Fuerza) VARONIL` 0 - 2 `AXOLOTS (3°Fuerza) VARONIL`
+  - `π Pretorianos (3ª Fuerza) VARONIL` 2 - 0 `AXOLOTS (3°Fuerza) VARONIL`
+  - `Bats '07 - '08 (3ª Fuerza) VARONIL` 2 - 0 `AXOLOTS (3°Fuerza) VARONIL`
+  - `Bats '07 - '08 (3ª Fuerza) VARONIL` 2 - 0 `Churpios(3° Fuerza)VARONIL`
+- Observaciones de normalizacion detectadas:
+  - `AXOLOTS (Promocional/Preparatoria) VARONIL` y `AXOLOTS (3°Fuerza) VARONIL` pueden requerir resolver si son variantes del mismo club o equipos distintos
+  - `Churpios(3° Fuerza)VARONIL` requiere limpieza de formato / espaciado
+- Se agrego un catalogo base de 9 sedes posibles para uso futuro en produccion y demos:
+  - `Cancha Palacio Municipal - Municipio Tixkokob`
+  - `CDK Cancha 1 (Complejo Deportivo Kukulcán)`
+  - `Deportivo Rogers Hall - Cancha 2`
+  - `CDK Cancha 2 (Complejo Deportivo Kukulcán)`
+  - `CDK Cancha 3 (Complejo Deportivo Kukulcán)`
+  - `Parque 7 de Agosto - Cancha 1`
+  - `U. Dep. 20 Noviembre - Cancha 1`
+  - `Prepa Anáhuac Mérida`
+  - `Arena Anáhuac - Universidad Anáhuac Mayab`
+- Cada sede vino acompañada de direccion, lo que la vuelve util para:
+  - catalogo real de produccion
+  - demos mas ricos
+  - mezcla de sedes para transmitir alcance comunitario y regional
+  - futuras funciones de agenda / logistica / mapas
+- Se agrego un bloque de observacion funcional a partir de pantallas de la PDGD actual:
+  - dashboard modular por tarjetas para:
+    - `Inscripciones`
+    - `Área deportiva`
+    - `Comunicación`
+    - `Contabilidad`
+    - `Tienda`
+    - `Ayuda`
+  - menu lateral modular con secciones y submenus
+  - oportunidad fuerte de mejora para voleibol en `CODEX by iPV`:
+    - enriquecer tabla de clasificacion
+    - agregar puntos por set / resultado por set
+    - permitir tablas mas completas que la vista actual `PTS / PJ / PG / PP / PF / PC`
+- Se preciso geografia util para demos:
+  - `Parque 7 de Agosto - Cancha 1`:
+    - `Campeche, Campeche`
+  - `Cancha Palacio Municipal - Municipio Tixkokob`:
+    - `Tixkokob, Yucatán`
+  - resto de sedes compartidas:
+    - `Yucatán`
+    - principalmente `Mérida`
+  - `Arena Anáhuac - Universidad Anáhuac Mayab`:
+    - jurisdiccion de `Mérida`
+    - referencia geografica de zona hacia `Dzityá / Dzibilchaltún`
+- Se agregaron 3 bloques nuevos de eventos para dataset demo:
+  - `CIVOLSUR`
+    - rango: `06 - 12 ene.`
+    - fechas visibles: `2026-01-10`, `2026-01-11`
+    - categoria: `Fem - Inf. Menor 11-12`
+    - equipos:
+      - `L'Eglise Fefran`
+      - `Cuervitas Novatas`
+      - `Caribeñitas B`
+      - `Centinelas (Secundaria)`
+    - sedes:
+      - `U. Dep. 20 Noviembre - Cancha 1`
+      - `Parque 7 de Agosto - Cancha 1`
+    - evento:
+      - `4ª Etapa 3ª Edición CIVOLSUR 2024`
+  - `Rogers`
+    - rango: `16 marzo - 22 marzo 2026`
+    - fechas visibles: `2026-03-18`, `2026-03-21`
+    - categoria: `Preparatoria`
+    - equipos:
+      - `Centinelas by iPV - CDK`
+      - `Anáhuac (Prepa)`
+      - `L'Eglise (Yamil)`
+    - sedes:
+      - `Prepa Anáhuac Mérida`
+      - `Deportivo Rogers Hall - Cancha 2`
+    - evento:
+      - `TORNEO DE VOLEIBOL "RITA CICERO" - Rogers`
+  - `Anáhuac Mayab`
+    - rango: `09 marzo - 15 marzo 2026`
+    - fecha visible: `2026-03-13`
+    - categoria: `Libre`
+    - partido visible:
+      - `Centinelas - CDK` 2 - 1 `Tigres`
+    - sede:
+      - `Arena Anáhuac - Universidad Anáhuac Mayab`
+    - evento:
+      - `Torneo de Voleibol Anáhuac 2026`
+- Se agrego una capacidad futura especifica para eventos de `Tixkokob`:
+- Se corrigio el criterio para brackets:
+  - `Ver Cuadro de Competencia` pasa a ser capacidad general del sistema
+  - la opcion se habilita solo si el evento tiene disponible un enlace de bracket
+  - los links de Tixkokob quedan como primeros ejemplos reales, no como caso unico
+- Links ejemplo registrados:
+  - `https://by-ipv.github.io/cuadrangular-by-iPV/index.html?event=by-iPV-2026-TIX-CUAD-v1`
+  - `https://by-ipv.github.io/cuadrangular-by-iPV/index.html?event=by-iPV-2026-TIX-CUAD-v2`
+- Esto sugiere ampliar el modelo de evento/partido con referencias opcionales a:
+  - tabla de clasificacion
+  - bracket
+  - hoja de anotacion
+  - otros recursos externos del torneo
+- Se agrego una propuesta concreta de UX para `Demo`:
+  - punto fijo de activacion en `Resumen rapido`, esquina superior derecha
+  - apertura de dialogo reutilizando el patron del panel flotante de Google
+  - listado de eventos demo dentro del dialogo
+  - seleccion de uno o varios eventos para poblar las secciones del dashboard
+- Se agrego tambien un estado visual persistente para cuando `Demo` este activo:
+  - indicador `MODO DEMO`
+  - con presencia en:
+    - hero central superior
+    - tarjeta `Equipos`, esquina superior derecha
+    - menu lateral, parte inferior centrada
+  - intencion:
+    - dejar claro que los datos son demo
+    - aumentar descubribilidad
+    - reemplazar el boton actual por una experiencia mas intencional
+- La propuesta reaprovecha un patron ya conocido en la app:
+  - dialogo flotante tipo panel de cuenta / Google
+
+### Que quedo pendiente
+- Probar manualmente en navegador el login/logout real con Google.
+- Validar el flujo completo de autenticacion dentro de la app, ya con la version consolidada.
+- Elegir el siguiente frente principal de trabajo del producto:
+  - matching
+  - visual/admin
+  - otra mejora funcional
+- Mantener estas bitacoras actualizadas conforme avancen las sesiones.
+- Validar manualmente en UI que un admin caiga en `0.08` sin preferencia guardada y que un no-admin caiga en `0.2`.
+- Confirmar si la opacidad remota desde Sheets debe seguir funcionando como override explicito o solo como legacy/fallback.
+- Confirmar con prueba visual si el correo actual de la sesion debe entrar como admin o si aun falta incorporarlo en `adminEmails` dentro de `Settings`.
+- Definir la politica exacta para usuarios autenticados sin `pre-registro`: que podran ver, que podran editar y que quedara en solo lectura.
+- Diseñar una capa unica de permisos (`session/admin/pre-registro/owner`) para que la UI y las acciones consuman la misma fuente de verdad.
+- Integrar en esa misma capa un modo `offline-readonly` para dashboard, con permisos limitados a consulta de datos ya sincronizados o cacheados.
+- Encapsular un bootstrap con estrategia de fuente de datos (`remote`, `local-cache`, `empty-state`) para que el modo offline no dependa de condicionales dispersos.
+
+### Siguiente paso
+- Abrir la app en navegador y validar el flujo de acceso con Google.
+- Si auth queda estable, retomar el siguiente bloque funcional prioritario del proyecto.
+- Validar en navegador el comportamiento de opacidad para:
+  - admin sin preferencia local
+  - usuario normal sin preferencia local
+  - usuario con preferencia guardada
+- Validar que el panel de sesion ya no muestre mensajes transitorios de login y que el correo de administracion sea reconocido correctamente.
+- Convertir el inventario de restricciones en una matriz concreta de `visible`, `oculto`, `solo lectura` y `bloqueado` para cada seccion principal.
+- Definir si la encapsulacion de opacidad dara un paso mas hacia una politica visual unica o si la version actual ya es suficiente para `v1.0`.
+- Definir alcance exacto del modo sin conexion:
+  - que datos se podran consultar
+  - de donde saldran cuando no haya red
+  - que mensajes mostrara la UI cuando la informacion este desactualizada
+- Decidir que elementos visuales offline son realmente confiables si dependen de imagenes remotas de Drive y cuando deben mostrar placeholder.
+- Comparar visualmente todas las superficies glass contra el `hero` de la `v0.1` para decidir cuales deben bajar opacidad en admin y cuales pueden conservar mas densidad.
+- Comparar visualmente las superficies de la `v0.2` contra la tarjeta de dialogo de conexion para detectar que tarjetas siguen viendose mas densas que el objetivo visual de admin.
+- Validar en navegador si los targets admin seleccionados ya igualan visualmente el objetivo `0.08` o si todavia quedan superficies internas mas densas que requieran una segunda pasada.
+- Validar en navegador si el dialogo de Google vuelve a abrir normalmente cuando no hay conexion y si la UI deja de mostrar controles incoherentes durante la espera de bootstrap.
+- Confirmar si el dialogo de Google vuelve a comportarse como antes tras retirar unicamente el experimento de opacidad admin.
+- Confirmar si el comportamiento actual coincide con la `v0.2` local esperada tanto en opacidad como en despliegue del dialogo de Google.
+- Convertir las observaciones de `v0.3.1` desconectada en una matriz concreta de permisos para:
+  - guest / desconectado
+  - autenticado sin pre-registro
+  - autenticado con pre-registro
+  - admin
+- Probar en navegador la copia aislada `1fe288f` para confirmar si el dialogo de Google abre correctamente en local y asi acotar la regresion.
+- Convertir lo observado en `1fe288f` en una matriz de referencia para comparar contra `6713f1a` y detectar exactamente que permisos o visibilidades dejaron de comportarse igual.
+- Convertir el criterio ya fijado de `desconectado / solo lectura` en reglas concretas de UI y de accion, para que no dependa solo de ocultar/mostrar componentes.
+- Evaluar como encajaria el `modo colaborativo` dentro del modelo actual sin contaminar la base de `matchmaking` v1.0:
+  - si sera un modulo separado
+  - si reutilizara `Teams`, `Matches` y `Capacidad`
+  - si requerira nuevas entidades para canchas, slots y perfil publico de equipos
+- Robustecer `Cargar demo` para que sirva como demo real del producto:
+  - mas ramas y categorias
+  - mas equipos
+  - logros / nivel competitivo
+  - proximos eventos
+- Definir el modelo minimo de datos para `Agendar`:
+  - que item se agenda
+  - que datos se comprometen
+  - cuando se crea el compromiso
+  - que link o referencia se entrega hacia la tienda DGD
+- Conseguir o definir la tabla de costos de arbitraje y sus reglas de aplicacion.
+- Definir si `categoria / nivel / logros / proximos eventos` viviran dentro de `Teams` o en una entidad adicional de perfil.
+- Si seguimos con Clupik, localizar el endpoint/API que alimenta la vista de partidos para poder extraer datos estructurados de eventos reales.
+- Convertir esta primera mini base visual extraida desde capturas en estructura util para el repo:
+  - equipos
+  - partidos
+  - categorias
+  - sedes / eventos
+- Seguir acumulando bloques manuales de partidos/equipos/categorias para enriquecer el dataset demo aunque el endpoint de Clupik aun no este resuelto.
+- Normalizar nombres de equipos historicos para distinguir:
+  - variantes del mismo club
+  - categorias incrustadas en el nombre
+  - diferencias reales vs problemas de captura/formato
+- Convertir el catalogo manual de sedes en estructura util para el proyecto:
+  - `venues`
+  - `address`
+  - `city/state`
+  - alias o nivel de sede si aplica
+- Diseñar una version mejorada de tabla de clasificacion para voleibol que contemple:
+  - sets a favor / sets en contra
+  - puntos por set
+  - criterios de desempate
+  - relacion con hoja de anotacion / evidencia documental
+- Definir modelo futuro de `demoEvents` para soportar:
+  - seleccion multiple
+  - mezcla de eventos
+  - carga de equipos / partidos / sedes / clasificaciones / recursos
+- Definir como se modelaran los recursos externos por evento, por ejemplo:
+  - `bracketUrl`
+  - `classificationUrl`
+  - `scoreSheetUrl`
+- Definir en el modelo de `Match` un campo futuro para evidencia documental, por ejemplo:
+  - `scoreSheetUrl`
+  - `actaUrl`
+  - o nombre equivalente
+- Diseñar una separacion formal entre datos publicos y datos admin para que el frontend nunca reciba:
+  - IDs de Sheets
+  - URLs fuente
+  - payloads completos no necesarios
+- Clasificar la logica actual del proyecto en:
+  - puede quedarse en frontend
+  - debe migrar a Apps Script / backend
+  - debe exponerse solo como resultado ya resuelto
+- Convertir esta ruta gradual en backlog ejecutable, empezando por los componentes de mayor valor estrategico que hoy siguen en cliente.
+- Definir el payload minimo que si puede ver un no-admin en las paginas publicas.
+- Si `1fe288f` abre bien el dialogo en local, revisar el tramo de cambios entre `1fe288f` y `6713f1a` especificamente en:
+  - consolidacion del auth en `app.js`
+  - remocion de handlers inline en `index.html`
+  - cambios de visibilidad/cierre del dropdown
+
+### Decisiones tomadas
+- No depender solo del historial visual de `SESSIONS` para conservar contexto.
+- Guardar continuidad directamente en archivos del repo.
+- Separar el registro en dos documentos:
+  - `CHAT_LOG.md` para el intercambio conversacional
+  - `SESSION_LOG.md` para el estado operativo del proyecto
+- Dejar una sola fuente de verdad para la autenticacion en `app.js`.
+- Tratar el default de opacidad por rol como regla real de negocio visual.
+- Mantener compatibilidad con preferencias guardadas por usuario.
+- Resolver primero la coherencia del default por rol antes de tocar cambios mayores de apariencia.
+- Mantener el panel de Google limpio: sin mensajes de progreso, solo mensajes de error o configuracion cuando realmente hagan falta.
+- Tratar `pre-registro` como una capa de permisos distinta de `admin`, no como sustituto del login.
+- Evitar repetir reglas en `render*`, handlers y validaciones; moverlas a helpers/politicas reutilizables.
+- Tratar el dashboard `sin conexion / solo consulta` como otro estado formal de acceso, distinto de `guest`, `user`, `admin` y `pre-registro`.
+- Tomar la `v0.3.1` desplegada como referencia valida para contrastar:
+  - consistencia visual del dialogo de Google
+  - comportamiento real del flujo de autenticacion
+  - visibilidad efectiva de acciones y controles en estado desconectado
+- No mover la rama actual para esta verificacion; usar una copia aislada por `worktree` para probar el commit `1fe288f` sin afectar `main`.
+- Tratar el `modo colaborativo` como oportunidad de expansion con valor comunitario, pero no mezclarlo todavia con la estabilizacion principal de permisos/auth de la v1.0.
+- Mantener `Cargar demo` como apoyo de experiencia y demostracion del producto, sujeto a un enriquecimiento posterior de datos.
+- Usar el termino `Agendar` en lugar de `Comprar` para este futuro flujo, reservando el pago como una salida o enlace posterior hacia la tienda de la DGD.
+- Tratar la seguridad de contenido como problema de arquitectura de datos, no como bloqueo visual del navegador.
+- Tratar `v0.1` y `v0.4` como la misma linea base funcional homologada:
+  - `v0.1` en notas antiguas = referencia historica estable
+  - `v0.4` = esa misma base funcional ya restaurada y publicada
+- En `v0.4`, retirar primero el boton verde flotante de pruebas de Google y todas sus referencias directas sin tocar aun la encapsulacion completa del auth, para conservar estabilidad funcional mientras se limpia la interfaz.
+- En el dialogo de Google, retirar los mensajes transitorios usados solo para diagnostico de conexion, por ejemplo:
+  - `Boton de Google listo.`
+  - `Esperando Google Identity Services...`
+  - `GIS cargado. Inicializando...`
+  - `Boton de Google renderizado. Selecciona tu cuenta.`
+  - `Respuesta recibida de Google. Validando credencial...`
+  - `Sesion obtenida para: ...`
+  Mantener el panel limpio y sin trazas de prueba; los errores de sesion se comunican por el flujo normal de UI.
+- Se consolido una primera base demo robusta usando los eventos y datos recuperados en bitacoras:
+  - `12` equipos demo futuros para generar cruces amplios con `Generar partidos`
+  - `15` partidos demo historicos / programados para poblar de inmediato `Matching` y `Vista alterna`
+  - categorias activas de demo:
+    - `Preparatoria`
+    - `Secundaria`
+    - `Mixto`
+    - `3ª Fuerza Varonil`
+    - `Fem - Inf. Menor 11-12`
+    - `Libre`
+  - sedes incorporadas en la base demo:
+    - `Cancha Palacio Municipal - Municipio Tixkokob`
+    - `CDK Cancha 2 (Complejo Deportivo Kukulcán)`
+    - `CDK Cancha 3 (Complejo Deportivo Kukulcán)`
+    - `Parque 7 de Agosto - Cancha 1`
+    - `U. Dep. 20 Noviembre - Cancha 1`
+    - `Prepa Anáhuac Mérida`
+    - `Deportivo Rogers Hall - Cancha 2`
+    - `Arena Anáhuac - Universidad Anáhuac Mayab`
+  - intencion:
+    - que `Cargar demo` ya deje cabecero y detalle con variedad real
+    - que `Generar partidos` produzca muchos cruces futuros inmediatos sobre esa misma base
+- Se integro una primera capa financiera compatible con la arquitectura actual:
+  - `pricingConfig` global:
+    - `inscription`
+    - `deposit`
+    - `credentials`
+    - `refereeGamesRequired`
+  - `categoryPricing` por categoria con:
+    - `refereeCash`
+    - `refereeInvoice`
+  - selector en formulario para `billingMode`:
+    - `cash`
+    - `invoice`
+  - resumen de costos en tiempo real antes de guardar
+  - extension compatible del modelo `Team` con:
+    - `billingMode`
+    - `paymentStatus`
+    - `paymentBreakdown`
+  - funcion reutilizable:
+    - `calculateTeamCost(category, pricingConfig, categoryPricing, billingMode)`
+  - preparacion de compatibilidad futura con backend / Sheets mediante:
+    - `sheetNames.pricingConfig`
+    - `sheetNames.categoryPricing`
+    - lectura opcional desde `bootstrap` si esos payloads existen
+- Se reforzo el uso de logos en demo:
+  - `Cargar demo` y las vistas de partidos/equipos ahora intentan usar primero logos inferidos desde la galeria `teamLogo` cargada desde Drive
+  - si existe coincidencia por nombre/alias de equipo, ese logo especifico sobreescribe logos demo genericos
+  - si no hay coincidencia y no hay logo usable del equipo, el fallback visual pasa a ser el logo oficial de iPV
+- Se registra criterio adicional para enriquecimiento visual de demo:
+  - logos sin match exacto con equipo podran reutilizarse en datasets demo asignandolos por afinidad visual / categoria
+  - si el logo no sugiere claramente femenil o varonil, puede reutilizarse sin problema en categorias `Mixto`
+  - esto se considera una regla de apoyo visual para demos, no una regla operativa de produccion
+- Se integra como fuente fuerte de futuros demos el evento `CIVOLSUR`, celebrado en Merida el 24, 25 y 26 de octubre de 2025
+  - se recibio bloque amplio de programacion/resultados con:
+    - fecha
+    - horario
+    - sede
+    - cancha
+    - categoria
+    - grupo
+    - marcador / sets
+  - este bloque servira para:
+    - robustecer `Cargar demo`
+    - ampliar `Generar partidos`
+    - construir demos con eventos reales ya celebrados
+    - preparar tablas / clasificaciones de voleibol mas completas
+- Se refuerza un criterio clave para el futuro selector de demo:
+  - clasificar equipos y partidos por `evento`
+  - no mezclar todos los datasets al mismo tiempo por defecto
+  - preparar un combo / selector donde se listen eventos demo para cargar uno o varios de forma controlada
+  - esto ayudara a:
+    - evitar sobrepoblacion visual
+    - conservar coherencia entre equipos, partidos, sedes y clasificaciones
+    - dar mas impacto narrativo y realismo a cada demo
+  - mientras llega ese selector, tambien podran construirse demos pequenas usando equipos con logo aunque no representen un evento completo
+- Se corrigio el layout de logos en `Equipos > Listado visual`:
+  - los nombres largos estaban empujando la columna del logo y provocando desplazamiento / invasion visual entre tarjetas
+  - se ajusto la grilla para que la columna de texto pueda encoger correctamente y hacer wrap sin mover el logo fuera de su tarjeta
+- Actividad 1 concluida: `Selector de eventos demo`
+  - se agrego selector `Evento demo` junto a `Cargar demo`
+  - se creo estructura `demoEvents` en configuracion para listar eventos demo curados
+  - `Cargar demo` ahora respeta el evento seleccionado y carga solo el subset correspondiente
+  - si un evento solo tiene partidos historicos, la app sintetiza equipos desde esos partidos para mantener coherencia en `Listado visual`
+  - si se elige `Base demo completa`, conserva el comportamiento amplio actual
+  - se actualiza el texto descriptivo del formulario para indicar el demo activo y su descripcion
+  - verificacion:
+    - `node --check app.js`
+    - `node --check config.js`
+  - nota de trazabilidad:
+    - este primer commit local tambien consolidara cambios funcionales previos no comprometidos que ya formaban parte de la base de trabajo actual

@@ -11,7 +11,6 @@
 </head>
 <body>
   <div id="appBackground" class="app-background"></div>
-  <button type="button" id="authProbeBtn" class="auth-probe-btn" onclick="return window.__openAuthPanel ? window.__openAuthPanel(event) : false;">Probar acceso Google</button>
   <div class="app-shell">
     <aside id="sidebar" class="sidebar card-glass">
       <div class="sidebar-brand">
@@ -73,7 +72,6 @@
               <button type="button" id="heroLoginBtn" class="btn btn-primary hero-login-btn" onclick="return window.__openAuthPanel ? window.__openAuthPanel(event) : false;">Acceso con Google</button>
               <div id="loginDropdown" class="login-dropdown hidden">
                 <p id="authStatus" class="muted">Inicia sesión para registrar o editar tus equipos.</p>
-                <div id="authDebug" class="auth-debug hidden" aria-live="polite"></div>
                 <div id="googleLoginButton"></div>
                 <div id="userSession" class="user-session hidden">
                   <strong id="userName">Usuario</strong>
@@ -134,6 +132,10 @@
                   <h2>Alta de disponibilidad de equipos</h2>
                 </div>
                 <div class="panel-actions">
+                  <label class="inline-select-control">
+                    <span class="field-label">Evento demo</span>
+                    <select id="demoEventSelect" name="demoEventSelect"></select>
+                  </label>
                   <button type="button" id="resetDemoBtn" class="btn btn-ghost">Cargar demo</button>
                   <button type="button" id="saveVisualSettingsBtn" class="btn btn-secondary">Guardar ajustes visuales</button>
                 </div>
@@ -195,6 +197,22 @@
                     Fechas preferentes
                     <textarea id="preferredDates" name="preferredDates" rows="3" placeholder="2026-04-05, 2026-04-12"></textarea>
                   </label>
+                </div>
+
+                <div class="field-grid field-grid-2 align-start">
+                  <label>
+                    Modo de cobro
+                    <select id="billingMode" name="billingMode">
+                      <option value="cash">Efectivo</option>
+                      <option value="invoice">Facturado</option>
+                    </select>
+                  </label>
+                  <div class="payment-summary-card">
+                    <p class="field-label">Resumen de costos</p>
+                    <div id="paymentSummaryBox" class="payment-summary-box">
+                      Selecciona una categoría para calcular el costo del equipo.
+                    </div>
+                  </div>
                 </div>
 
                 <div class="field-grid field-grid-2 align-start">
@@ -532,14 +550,6 @@
       }
     }
 
-    function setDebug(message) {
-      const debug = byId("authDebug");
-      if (!debug) return;
-      const text = String(message || "").trim();
-      debug.textContent = text;
-      debug.classList.toggle("hidden", !text);
-    }
-
     function decodeJwt(token) {
       try {
         const payload = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
@@ -554,14 +564,10 @@
     function updateButtons() {
       const user = getSession();
       const hero = byId("heroLoginBtn");
-      const probe = byId("authProbeBtn");
       const hiddenToggle = byId("loginToggle");
       if (hero) {
         hero.classList.toggle("is-google-icon", Boolean(user && user.email));
         hero.innerHTML = user && user.email ? "<span class='google-mark' aria-hidden='true'>G</span>" : "Acceso con Google";
-      }
-      if (probe) {
-        probe.textContent = user && user.email ? "Panel de cuenta Google" : "Probar acceso Google";
       }
       if (hiddenToggle) {
         hiddenToggle.textContent = user && user.email ? "Cuenta de Google" : "Acceso con Google";
@@ -589,17 +595,14 @@
     }
 
     function handleCredential(response) {
-      setDebug("Respuesta recibida de Google. Validando credencial…");
       const payload = decodeJwt(response && response.credential);
       if (!payload || !payload.email) {
-        setDebug("Google respondió, pero no llegó un correo válido.");
         return;
       }
       localStorage.setItem(sessionKey, JSON.stringify({
         email: payload.email,
         name: payload.name || payload.email
       }));
-      setDebug("Sesión obtenida para: " + payload.email);
       updateButtons();
       window.location.reload();
     }
@@ -609,12 +612,9 @@
       const clientId = String((window.APP_CONFIG && window.APP_CONFIG.googleClientId) || "").trim();
       if (!holder) return;
       if (!clientId) {
-        setDebug("Falta googleClientId en config.js");
         return;
       }
-      setDebug("Esperando Google Identity Services…");
       waitForGoogle().then(function () {
-        setDebug("GIS cargado. Inicializando…");
         if (!googleReady) {
           window.google.accounts.id.initialize({
             client_id: clientId,
@@ -629,10 +629,7 @@
           shape: "pill",
           locale: "es"
         });
-        setDebug("Botón de Google renderizado. Selecciona tu cuenta.");
-      }).catch(function (error) {
-        setDebug("Error al cargar GIS: " + (error && error.message ? error.message : "desconocido"));
-      });
+      }).catch(function () {});
     }
 
     function renderPanel() {
@@ -644,7 +641,6 @@
       const googleButton = byId("googleLoginButton");
       if (!status || !session || !googleButton) return;
       if (user && user.email) {
-        setDebug("");
         status.textContent = "Sesión activa. Puedes editar tus equipos.";
         session.classList.remove("hidden");
         if (userName) userName.textContent = user.name || "Usuario";
@@ -704,11 +700,9 @@
       document.addEventListener("click", function (event) {
         const panel = byId("loginDropdown");
         const hero = byId("heroLoginBtn");
-        const probe = byId("authProbeBtn");
         if (!panel || panel.classList.contains("hidden")) return;
         if (panel.contains(event.target)) return;
         if (hero && hero.contains(event.target)) return;
-        if (probe && probe.contains(event.target)) return;
         closeAuthPanel();
       });
     }

@@ -348,25 +348,6 @@ img {
   white-space: pre-wrap;
 }
 
-.auth-probe-btn {
-  position: fixed;
-  right: 24px;
-  bottom: 24px;
-  z-index: 10000;
-  min-height: 50px;
-  padding: 0 18px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 999px;
-  background: linear-gradient(145deg, rgba(40, 198, 120, 0.96), rgba(14, 125, 78, 0.96));
-  color: #f5fff8;
-  font-weight: 800;
-  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.28);
-}
-
-.auth-probe-btn:hover {
-  transform: translateY(-1px);
-}
-
 .btn {
   min-height: 46px;
   padding: 0 18px;
@@ -809,15 +790,43 @@ textarea:focus {
   gap: 10px;
 }
 
+.inline-select-control {
+  display: grid;
+  gap: 6px;
+  min-width: 220px;
+}
+
+.inline-select-control select {
+  min-height: 46px;
+}
+
 .section-copy {
   margin: 0;
   color: var(--muted);
 }
 
 .logo-preview-card,
-.inline-help {
+.inline-help,
+.payment-summary-card {
   display: grid;
   gap: 10px;
+}
+
+.payment-summary-box {
+  min-height: 120px;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-lg);
+  color: var(--text);
+  line-height: 1.45;
+}
+
+.payment-summary-box strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 1.15rem;
+  color: #fff1bf;
 }
 
 .logo-preview,
@@ -1229,9 +1238,13 @@ th {
 
 .team-card-head {
   display: grid;
-  grid-template-columns: 1fr 86px;
+  grid-template-columns: minmax(0, 1fr) 86px;
   gap: 16px;
   align-items: start;
+}
+
+.team-card-head > :first-child {
+  min-width: 0;
 }
 
 .team-card-logo-wrap {
@@ -1250,6 +1263,11 @@ th {
   margin: 0 0 8px;
   font-family: "Rajdhani", sans-serif;
   font-size: 1.3rem;
+  overflow-wrap: anywhere;
+}
+
+.team-card .muted {
+  overflow-wrap: anywhere;
 }
 
 .team-card-logo {

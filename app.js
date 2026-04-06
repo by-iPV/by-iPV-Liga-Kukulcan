@@ -2,6 +2,16 @@
 (function () {
   const config = window.APP_CONFIG || {};
   const PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400' viewBox='0 0 600 400'%3E%3Crect width='600' height='400' fill='%23131d42'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23fbb400' font-family='Arial' font-size='28'%3ESin imagen%3C/text%3E%3C/svg%3E";
+  const IPV_LOGO = "assets/logo-ipv-oficial.png";
+  const TEAM_LOGO_ALIASES = {
+    "aguilas": ["aguilas"],
+    "ardillas": ["ardillas", "inst montelibano", "monte libano"],
+    "axolots": ["axolots"],
+    "gacelobos": ["gacelobos"],
+    "zorros cahad": ["zorros", "cahad"],
+    "slayers": ["slayers"],
+    "cerberus": ["cerberus"]
+  };
   const SETTINGS_KEYS = {
     fondos: "backgroundFolderId",
     logos: "logosFolderId",
@@ -19,6 +29,8 @@
     settings: normalizeSettings(config.settings || {}, initialLoggedUser),
     adminConfig: normalizeAdminConfig(config.adminConfig || {}),
     capacity: normalizeCapacity(config.capacityRows || []),
+    pricingConfig: normalizePricingConfig(config.pricingConfig || {}),
+    categoryPricing: normalizeCategoryPricing(config.categoryPricing || []),
     configRows: null,
     baseSettings: null,
     loggedUser: initialLoggedUser,
@@ -34,9 +46,11 @@
       selectedMatchId: "",
       draftAccepted: {}
     },
+    demoEvents: normalizeDemoEvents(config.demoEvents || []),
+    selectedDemoEventId: localStorage.getItem("ipv_demo_event") || "all",
     matching: { mode: "roundRobin", groupCount: 3, manual: false },
     branches: ["varonil", "femenil", "mixto"],
-    categories: ["Libre", "Juvenil", "Infantil Mayor"]
+    categories: buildCategoryCatalog()
   };
   const el = {};
 
@@ -68,7 +82,7 @@
   }
 
   function cacheElements() {
-    ["appBackground","sidebar","sidebarToggle","loginToggle","loginDropdown","authStatus","authDebug","googleLoginButton","userSession","userName","userEmail","logoutBtn","backendBadge","backendHint","teamCount","overlapCount","matchCount","sponsorsCarousel","headerTeamLogos","heroLoginBtn","authProbeBtn","teamForm","teamName","branch","category","date","startTime","endTime","unavailableDates","preferredDates","participateInMatching","teamLogoUrl","teamLogoPreview","saveTeamBtn","cancelEditBtn","messageBox","teamsTableBody","overlapsList","matchesList","viewEquiposList","viewPartidosList","visualConfigSection","backgroundSection","logosSection","sponsorsSection","backgroundFolderIdInput","logosFolderIdInput","sponsorsFolderIdInput","glassOpacityInput","enableCustomBackgroundInput","accentPresetSelect","accentExpandCardsInput","loadAllGalleriesBtn","saveVisualSettingsBtn","applyBackgroundBtn","applyTeamLogoBtn","reloadBackgroundGalleryBtn","reloadLogosGalleryBtn","reloadSponsorsGalleryBtn","backgroundGalleryStatus","backgroundGallery","logosGalleryStatus","logosGallery","sponsorsGalleryStatus","sponsorsGallery","adminForm","adminStartDate","adminEndDate","blockedDates","blockedDateInput","blockedReasonInput","matchingMode","groupCount","manualMatchingEnabled","addBlockedDateBtn","addRangeBtn","userBlockedView","blockedDatesReadable","generateMatchesBtn","saveMatchesBtn","acceptAllMatches","resetDemoBtn"].forEach(function (id) {
+    ["appBackground","sidebar","sidebarToggle","loginToggle","loginDropdown","authStatus","googleLoginButton","userSession","userName","userEmail","logoutBtn","backendBadge","backendHint","teamCount","overlapCount","matchCount","sponsorsCarousel","headerTeamLogos","heroLoginBtn","teamForm","teamName","branch","category","date","startTime","endTime","unavailableDates","preferredDates","participateInMatching","billingMode","paymentSummaryBox","teamLogoUrl","teamLogoPreview","saveTeamBtn","cancelEditBtn","messageBox","teamsTableBody","overlapsList","matchesList","viewEquiposList","viewPartidosList","visualConfigSection","backgroundSection","logosSection","sponsorsSection","backgroundFolderIdInput","logosFolderIdInput","sponsorsFolderIdInput","glassOpacityInput","enableCustomBackgroundInput","accentPresetSelect","accentExpandCardsInput","loadAllGalleriesBtn","saveVisualSettingsBtn","applyBackgroundBtn","applyTeamLogoBtn","reloadBackgroundGalleryBtn","reloadLogosGalleryBtn","reloadSponsorsGalleryBtn","backgroundGalleryStatus","backgroundGallery","logosGalleryStatus","logosGallery","sponsorsGalleryStatus","sponsorsGallery","adminForm","adminStartDate","adminEndDate","blockedDates","blockedDateInput","blockedReasonInput","matchingMode","groupCount","manualMatchingEnabled","addBlockedDateBtn","addRangeBtn","userBlockedView","blockedDatesReadable","generateMatchesBtn","saveMatchesBtn","acceptAllMatches","resetDemoBtn","demoEventSelect","teamFormDescription"].forEach(function (id) {
       el[id] = document.getElementById(id);
     });
     el.navItems = Array.from(document.querySelectorAll(".nav-item"));
@@ -79,7 +93,6 @@
   function bindEvents() {
     el.sidebarToggle.addEventListener("click", toggleSidebar);
     el.heroLoginBtn.addEventListener("click", toggleLoginDropdown);
-    if (el.authProbeBtn) el.authProbeBtn.addEventListener("click", toggleLoginDropdown);
     document.addEventListener("click", handleClickOutside);
     el.logoutBtn.addEventListener("click", logout);
     el.navItems.forEach(function (button) {
@@ -91,6 +104,13 @@
     el.saveMatchesBtn.addEventListener("click", saveAcceptedMatches);
     el.acceptAllMatches.addEventListener("change", toggleAcceptAllMatches);
     el.resetDemoBtn.addEventListener("click", seedDemo);
+    el.demoEventSelect.addEventListener("change", function () {
+      state.selectedDemoEventId = el.demoEventSelect.value || "all";
+      localStorage.setItem("ipv_demo_event", state.selectedDemoEventId);
+      renderDemoEventContext();
+    });
+    el.category.addEventListener("change", updatePaymentSummary);
+    el.billingMode.addEventListener("change", updatePaymentSummary);
     el.loadAllGalleriesBtn.addEventListener("click", function () { loadAllConfiguredGalleries(true); });
     el.applyBackgroundBtn.addEventListener("click", applySelectedBackground);
     el.applyTeamLogoBtn.addEventListener("click", applySelectedTeamLogo);
@@ -125,6 +145,9 @@
   function populateStaticOptions() {
     fillSelect(el.branch, state.branches, "Selecciona una rama");
     fillSelect(el.category, state.categories, "Selecciona una categoría");
+    populateDemoEvents();
+    if (!el.billingMode.value) el.billingMode.value = "cash";
+    updatePaymentSummary();
   }
 
   function setToday() {
@@ -145,6 +168,8 @@
     const response = await fetch(url + "?action=bootstrap");
     const json = await response.json();
     const payload = unwrapResponse(json);
+    if (payload.pricingConfig) state.pricingConfig = normalizePricingConfig(payload.pricingConfig);
+    if (Array.isArray(payload.categoryPricing)) state.categoryPricing = normalizeCategoryPricing(payload.categoryPricing);
     state.teams = normalizeTeams(payload.teams || []);
     state.matches = normalizeMatches(payload.matches || []);
     state.adminConfig = normalizeAdminConfig(payload.adminConfig || state.adminConfig);
@@ -181,6 +206,7 @@
     hydrateVisualInputs();
     applyGlass();
     state.baseSettings = Object.assign({}, state.settings, { dynamic: Object.assign({}, state.settings.dynamic || {}) });
+    updatePaymentSummary();
   }
 
   async function tryLoadConfigRows() {
@@ -212,6 +238,7 @@
     el.matchingMode.value = state.matching.mode;
     el.groupCount.value = String(state.matching.groupCount);
     el.manualMatchingEnabled.checked = state.matching.manual;
+    if (el.demoEventSelect) el.demoEventSelect.value = state.selectedDemoEventId;
   }
 
   function getSessionUser() {
@@ -276,6 +303,7 @@
       state.galleries[type] = images;
       current.status.textContent = images.length ? "Galerías cargadas" : "No hay imágenes";
       renderGallery(type);
+      if (type === "teamLogo" && state.teams.length) applyLogoFallbacksFromGallery();
       if (type === "backgroundImage" && !state.selected.background && images[0]) selectGalleryItem("backgroundImage", images[0].url);
     } catch (error) {
       console.error(error);
@@ -401,6 +429,9 @@
       preferredDates: parseList(el.preferredDates.value),
       logoUrl: el.teamLogoUrl.value || state.selected.teamLogo || "",
       participateInMatching: Boolean(el.participateInMatching.checked),
+      billingMode: normalizeBillingMode(el.billingMode.value),
+      paymentStatus: "pending",
+      paymentBreakdown: calculateTeamCost(el.category.value, state.pricingConfig, state.categoryPricing, el.billingMode.value),
       ownerEmail: state.loggedUser.email,
       createdAt: new Date().toISOString()
     };
@@ -421,8 +452,10 @@
     state.editingTeamId = "";
     el.cancelEditBtn.classList.add("hidden");
     setToday();
+    el.billingMode.value = "cash";
     el.teamLogoUrl.value = "";
     renderLogoPreview();
+    updatePaymentSummary();
   }
 
   function cancelEdit() {
@@ -443,15 +476,18 @@
     el.unavailableDates.value = team.unavailableDates.join(", ");
     el.preferredDates.value = team.preferredDates.join(", ");
     el.participateInMatching.checked = Boolean(team.participateInMatching);
+    el.billingMode.value = normalizeBillingMode(team.billingMode);
     el.teamLogoUrl.value = team.logoUrl || "";
     el.cancelEditBtn.classList.remove("hidden");
     renderLogoPreview();
+    updatePaymentSummary();
     setView("registro");
   }
 
   function renderAll() {
     setView(state.view);
     renderAuth();
+    renderDemoEventContext();
     renderConnectedVisibility();
     renderStats();
     renderLogoPreview();
@@ -473,9 +509,7 @@
     el.heroLoginBtn.classList.toggle("is-google-icon", isLogged);
     el.heroLoginBtn.innerHTML = isLogged ? "<span class='google-mark' aria-hidden='true'>G</span>" : "Acceso con Google";
     el.heroLoginBtn.setAttribute("aria-label", isLogged ? "Cuenta de Google" : "Acceso con Google");
-    if (el.authProbeBtn) el.authProbeBtn.textContent = isLogged ? "Panel de cuenta Google" : "Probar acceso Google";
     if (isLogged) {
-      setAuthDebug("");
       el.authStatus.textContent = isAdmin() ? "Sesión activa como administrador." : "Sesión activa. Puedes editar tus equipos.";
       el.userSession.classList.remove("hidden");
       el.userName.textContent = state.loggedUser.name || "Usuario";
@@ -515,7 +549,7 @@
       return;
     }
     el.teamsTableBody.innerHTML = state.teams.map(function (team) {
-      const logo = team.logoUrl ? "<img class='table-logo' src='" + esc(safeImageUrl(team.logoUrl)) + "' alt='" + esc(team.name) + "' onerror=\"this.src='" + PLACEHOLDER + "'\">" : "<span class='tag'>Sin logo</span>";
+      const logo = "<img class='table-logo' src='" + esc(getTeamLogoUrl(team.name, team.logoUrl)) + "' alt='" + esc(team.name) + "' onerror=\"this.src='" + IPV_LOGO + "'\">";
       const edit = canEditTeam(team) ? "<button type='button' class='btn btn-ghost btn-small edit-team' data-id='" + esc(team.id) + "'>Editar</button>" : "<span class='small-muted'>Solo lectura</span>";
       return "<tr><td><strong>" + esc(team.name) + "</strong><span class='small-muted'>" + esc(team.participateInMatching ? "Participa en matching" : "Registro manual") + "</span></td><td>" + esc(team.branch) + "</td><td>" + esc(team.category) + "</td><td>" + esc(formatHumanDate(team.date)) + "</td><td>" + esc(team.startTime + " - " + team.endTime) + "</td><td>" + logo + "</td><td>" + edit + "</td></tr>";
     }).join("");
@@ -530,7 +564,7 @@
       return;
     }
     el.viewEquiposList.innerHTML = state.teams.map(function (team) {
-      const logo = team.logoUrl ? "<img class='team-card-logo' src='" + esc(safeImageUrl(team.logoUrl)) + "' alt='" + esc(team.name) + "' onerror=\"this.src='" + PLACEHOLDER + "'\">" : "<div class='team-card-logo-fallback'>" + esc(initials(team.name)) + "</div>";
+      const logo = "<img class='team-card-logo' src='" + esc(getTeamLogoUrl(team.name, team.logoUrl)) + "' alt='" + esc(team.name) + "' onerror=\"this.src='" + IPV_LOGO + "'\">";
       return "<article class='team-card'><div class='team-card-head'><div><h3>" + esc(team.name) + "</h3><p class='muted'>" + esc(team.branch + " · " + team.category) + "</p></div><div class='team-card-logo-wrap'>" + logo + "</div></div><div class='small-muted'>" + esc(formatHumanDate(team.date) + " · " + team.startTime + " - " + team.endTime) + "</div></article>";
     }).join("");
   }
@@ -622,7 +656,7 @@
   }
 
   function renderTeamLogos() {
-    const urls = state.teams.map(function (team) { return team.logoUrl; }).filter(Boolean);
+    const urls = state.teams.map(function (team) { return getTeamLogoUrl(team.name, team.logoUrl); }).filter(Boolean);
     if (!urls.length) {
       el.headerTeamLogos.innerHTML = "<div class='empty-inline'>Sin logos registrados.</div>";
       return;
@@ -655,12 +689,8 @@
   }
 
   function renderLogoPreview() {
-    const url = el.teamLogoUrl.value || state.selected.teamLogo;
-    if (!url) {
-      el.teamLogoPreview.textContent = "Sin logo seleccionado";
-      return;
-    }
-    el.teamLogoPreview.innerHTML = "<img src='" + esc(safeImageUrl(url)) + "' alt='Logo seleccionado' onerror=\"this.src='" + PLACEHOLDER + "'\">";
+    const url = el.teamLogoUrl.value || state.selected.teamLogo || IPV_LOGO;
+    el.teamLogoPreview.innerHTML = "<img src='" + esc(safeImageUrl(url)) + "' alt='Logo seleccionado' onerror=\"this.src='" + IPV_LOGO + "'\">";
   }
 
   function setView(view) {
@@ -695,7 +725,6 @@
     if (next) {
       el.loginDropdown.dataset.open = "true";
       el.loginDropdown.classList.remove("hidden");
-      setAuthDebug("Abriendo panel de acceso…");
       initGoogleAuth();
       return;
     }
@@ -710,8 +739,7 @@
 
   function handleClickOutside(event) {
     if (el.loginDropdown.classList.contains("hidden")) return;
-    const clickedProbe = el.authProbeBtn ? el.authProbeBtn.contains(event.target) : false;
-    if (!el.loginDropdown.contains(event.target) && !el.heroLoginBtn.contains(event.target) && !clickedProbe) {
+    if (!el.loginDropdown.contains(event.target) && !el.heroLoginBtn.contains(event.target)) {
       closeLoginDropdown();
     }
   }
@@ -719,49 +747,37 @@
   function initGoogleAuth() {
     const clientId = String(config.googleClientId || "").trim();
     if (!clientId) {
-      setAuthDebug("Falta googleClientId en config.js");
       return;
     }
     if (el.googleLoginButton.dataset.bound) {
-      setAuthDebug("Botón de Google listo.");
       return;
     }
-    setAuthDebug("Esperando Google Identity Services…");
     waitForGoogle().then(function () {
       if (!window.google || !window.google.accounts || !window.google.accounts.id) {
-        setAuthDebug("GIS no está disponible en window.google");
         return;
       }
-      setAuthDebug("GIS cargado. Inicializando…");
       window.google.accounts.id.initialize({ client_id: clientId, callback: handleCredentialResponse });
       el.googleLoginButton.innerHTML = "";
       window.google.accounts.id.renderButton(el.googleLoginButton, { theme: "outline", size: "large", shape: "pill", locale: "es" });
       el.googleLoginButton.dataset.bound = "true";
-      setAuthDebug("Botón de Google renderizado. Selecciona tu cuenta.");
-    }).catch(function (error) {
-      setAuthDebug("Error al cargar GIS: " + (error && error.message ? error.message : "desconocido"));
-    });
+    }).catch(function () {});
   }
 
   function handleCredentialResponse(response) {
     try {
-      setAuthDebug("Respuesta recibida de Google. Validando credencial…");
       const payload = decodeJwt(response && response.credential);
       if (!payload || !payload.email) {
-        setAuthDebug("Google respondió, pero no llegó un correo válido.");
         showMessage("No se pudo obtener la sesión", "error");
         return;
       }
       state.loggedUser = { email: payload.email, name: payload.name || payload.email };
       localStorage.setItem(config.sessionStorageKey || "matchmaking-session", JSON.stringify(state.loggedUser));
-      setAuthDebug("Sesión obtenida para: " + state.loggedUser.email);
       refreshVisualSettingsForCurrentUser();
       closeLoginDropdown();
       renderAll();
       showMessage("Sesión iniciada correctamente", "success");
     } catch (error) {
       console.error("Error al completar el inicio de sesión", error);
-      setAuthDebug("Error en callback de sesión: " + (error && error.message ? error.message : "desconocido"));
       closeLoginDropdown();
       showMessage("No se pudo completar el inicio de sesión", "error");
     }
@@ -770,18 +786,10 @@
   function logout() {
     state.loggedUser = null;
     localStorage.removeItem(config.sessionStorageKey || "matchmaking-session");
-    setAuthDebug("");
     refreshVisualSettingsForCurrentUser();
     closeLoginDropdown();
     renderAll();
     showMessage("Sesión cerrada", "success");
-  }
-
-  function setAuthDebug(message) {
-    if (!el.authDebug) return;
-    const text = String(message || "").trim();
-    el.authDebug.textContent = text;
-    el.authDebug.classList.toggle("hidden", !text);
   }
 
   async function saveAdminConfig(event) {
@@ -967,15 +975,21 @@
   }
 
   function seedDemo() {
-    state.teams = normalizeTeams((config.demoTeams || []).map(function (team, index) {
+    const demoBundle = getSelectedDemoBundle();
+    state.teams = normalizeTeams(demoBundle.teams.map(function (team, index) {
       return Object.assign({}, team, { id: team.id || createId("team" + index), ownerEmail: state.loggedUser && state.loggedUser.email ? state.loggedUser.email : (team.ownerEmail || "demo@ipv.mx") });
     }));
-    state.matches = [];
-    state.matchUi.selectedMatchId = "";
-    state.matchUi.draftAccepted = {};
+    state.matches = normalizeMatches(demoBundle.matches || []);
+    state.adminConfig = normalizeAdminConfig(demoBundle.adminConfig || config.demoAdminConfig || state.adminConfig);
+    applyLogoFallbacksFromGallery();
+    state.matchUi.selectedMatchId = state.matches[0] ? state.matches[0].id : "";
+    state.matchUi.draftAccepted = buildDraftAccepted();
+    hydrateVisualInputs();
+    renderDemoEventContext();
+    updatePaymentSummary();
     persistData();
     renderAll();
-    showMessage("Datos demo cargados", "success");
+    showMessage("Datos demo cargados: " + demoBundle.label, "success");
   }
 
   function persistData() {
@@ -1006,8 +1020,7 @@
   }
 
   function renderMatchLogo(url, name) {
-    if (url) return "<div class='match-team-logo'><img src='" + esc(safeImageUrl(url)) + "' alt='" + esc(name) + "' onerror=\"this.src='" + PLACEHOLDER + "'\"></div>";
-    return "<div class='match-team-logo'>" + esc(initials(name)) + "</div>";
+    return "<div class='match-team-logo'><img src='" + esc(getTeamLogoUrl(name, url)) + "' alt='" + esc(name) + "' onerror=\"this.src='" + IPV_LOGO + "'\"></div>";
   }
 
   function emptyGallery(text) { return "<div class='empty-shell'>" + esc(text || "No hay imágenes disponibles en la carpeta") + "</div>"; }
@@ -1042,8 +1055,23 @@
 
   function normalizeTeams(input) {
     return (input || []).map(function (team) {
-      return { id: team.id || createId("team"), name: team.name || "", branch: team.branch || "mixto", category: team.category || "Libre", date: team.date || "", startTime: team.startTime || "00:00", endTime: team.endTime || "00:00", unavailableDates: parseList(team.unavailableDates || []), preferredDates: parseList(team.preferredDates || []), logoUrl: safeImageUrl(team.logoUrl || team.logo || ""), participateInMatching: team.participateInMatching !== false, ownerEmail: team.ownerEmail || "", createdAt: team.createdAt || new Date().toISOString() };
+      const category = team.category || "Libre";
+      const billingMode = normalizeBillingMode(team.billingMode);
+      return { id: team.id || createId("team"), name: team.name || "", branch: team.branch || "mixto", category: category, date: team.date || "", startTime: team.startTime || "00:00", endTime: team.endTime || "00:00", unavailableDates: parseList(team.unavailableDates || []), preferredDates: parseList(team.preferredDates || []), logoUrl: safeImageUrl(team.logoUrl || team.logo || ""), participateInMatching: team.participateInMatching !== false, billingMode: billingMode, paymentStatus: team.paymentStatus || "pending", paymentBreakdown: normalizePaymentBreakdown(team.paymentBreakdown || calculateTeamCost(category, state.pricingConfig, state.categoryPricing, billingMode)), ownerEmail: team.ownerEmail || "", createdAt: team.createdAt || new Date().toISOString() };
     });
+  }
+
+  function normalizeDemoEvents(input) {
+    return (input || []).map(function (item) {
+      return {
+        id: String(item.id || "").trim(),
+        label: String(item.label || item.id || "Evento demo").trim(),
+        description: String(item.description || "").trim(),
+        teamIds: Array.isArray(item.teamIds) ? item.teamIds.map(String) : [],
+        matchIds: Array.isArray(item.matchIds) ? item.matchIds.map(String) : [],
+        adminConfig: item.adminConfig || null
+      };
+    }).filter(function (item) { return item.id; });
   }
 
   function normalizeMatches(input) {
@@ -1059,6 +1087,185 @@
     });
   }
 
+  function normalizePricingConfig(input) {
+    return {
+      inscription: Number(input.inscription || 1250),
+      deposit: Number(input.deposit || 200),
+      credentials: Number(input.credentials || 360),
+      refereeGamesRequired: Number(input.refereeGamesRequired || 5)
+    };
+  }
+
+  function normalizeCategoryPricing(input) {
+    return (input || []).map(function (item) {
+      return {
+        category: String(item.category || "").trim(),
+        refereeCash: Number(item.refereeCash || 0),
+        refereeInvoice: Number(item.refereeInvoice || 0)
+      };
+    }).filter(function (item) { return item.category; });
+  }
+
+  function normalizeBillingMode(value) {
+    return value === "invoice" ? "invoice" : "cash";
+  }
+
+  function normalizePaymentBreakdown(input) {
+    return {
+      inscription: Number(input.inscription || 0),
+      deposit: Number(input.deposit || 0),
+      credentials: Number(input.credentials || 0),
+      refereeCost: Number(input.refereeCost || 0),
+      refereeGames: Number(input.refereeGames || 0),
+      refereeTotal: Number(input.refereeTotal || 0),
+      total: Number(input.total || 0),
+      billingMode: normalizeBillingMode(input.billingMode),
+      category: String(input.category || "").trim(),
+      foundCategory: Boolean(input.foundCategory)
+    };
+  }
+
+  function calculateTeamCost(category, pricingConfig, categoryPricing, billingMode) {
+    const safeMode = normalizeBillingMode(billingMode);
+    const pricing = normalizePricingConfig(pricingConfig || {});
+    const normalizedCategory = String(category || "").trim();
+    const entry = (categoryPricing || []).find(function (item) { return String(item.category || "").trim() === normalizedCategory; }) || null;
+    const refereeCost = entry ? Number(safeMode === "invoice" ? entry.refereeInvoice : entry.refereeCash) : 0;
+    const refereeGames = Number(pricing.refereeGamesRequired || 0);
+    const refereeTotal = refereeCost * refereeGames;
+    return {
+      inscription: Number(pricing.inscription || 0),
+      deposit: Number(pricing.deposit || 0),
+      credentials: Number(pricing.credentials || 0),
+      refereeCost: refereeCost,
+      refereeGames: refereeGames,
+      refereeTotal: refereeTotal,
+      total: Number(pricing.inscription || 0) + Number(pricing.deposit || 0) + Number(pricing.credentials || 0) + refereeTotal,
+      billingMode: safeMode,
+      category: normalizedCategory,
+      foundCategory: Boolean(entry)
+    };
+  }
+
+  function formatCurrency(value) {
+    return new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(Number(value || 0));
+  }
+
+  function updatePaymentSummary() {
+    if (!el.paymentSummaryBox) return;
+    const category = String(el.category.value || "").trim();
+    if (!category) {
+      el.paymentSummaryBox.innerHTML = "Selecciona una categoría para calcular el costo del equipo.";
+      return;
+    }
+    const breakdown = calculateTeamCost(category, state.pricingConfig, state.categoryPricing, el.billingMode.value);
+    if (!breakdown.foundCategory) {
+      el.paymentSummaryBox.innerHTML = "La categoría seleccionada aún no tiene costo configurado para este evento.";
+      return;
+    }
+    const billingLabel = breakdown.billingMode === "invoice" ? "Facturado" : "Efectivo";
+    el.paymentSummaryBox.innerHTML =
+      "Inscripción: " + esc(formatCurrency(breakdown.inscription)) + "<br>" +
+      "Fianza: " + esc(formatCurrency(breakdown.deposit)) + "<br>" +
+      "Credenciales: " + esc(formatCurrency(breakdown.credentials)) + "<br>" +
+      "Arbitraje unitario (" + esc(billingLabel) + "): " + esc(formatCurrency(breakdown.refereeCost)) + "<br>" +
+      "Arbitrajes por adelantado: " + esc(String(breakdown.refereeGames)) + "<br>" +
+      "Total arbitrajes: " + esc(formatCurrency(breakdown.refereeTotal)) +
+      "<strong>Total: " + esc(formatCurrency(breakdown.total)) + "</strong>";
+  }
+
+  function buildCategoryCatalog() {
+    const base = ["Libre", "Juvenil", "Infantil Mayor", "Preparatoria", "Secundaria", "Mixto", "3ª Fuerza Varonil", "Fem - Inf. Menor 11-12"];
+    const configured = (config.categoryPricing || []).map(function (item) { return String(item.category || "").trim(); }).filter(Boolean);
+    return Array.from(new Set(base.concat(configured)));
+  }
+
+  function populateDemoEvents() {
+    if (!el.demoEventSelect) return;
+    const events = state.demoEvents.length ? state.demoEvents : [{ id: "all", label: "Base demo completa", description: "" }];
+    el.demoEventSelect.innerHTML = events.map(function (item) {
+      return "<option value='" + esc(item.id) + "'>" + esc(item.label) + "</option>";
+    }).join("");
+    if (!events.some(function (item) { return item.id === state.selectedDemoEventId; })) {
+      state.selectedDemoEventId = events[0].id;
+    }
+    el.demoEventSelect.value = state.selectedDemoEventId;
+  }
+
+  function getSelectedDemoEvent() {
+    return state.demoEvents.find(function (item) { return item.id === state.selectedDemoEventId; }) || state.demoEvents[0] || { id: "all", label: "Base demo completa", description: "" };
+  }
+
+  function renderDemoEventContext() {
+    if (!el.teamFormDescription) return;
+    const selected = getSelectedDemoEvent();
+    const suffix = selected && selected.description ? " Demo activo: " + selected.label + ". " + selected.description : "";
+    el.teamFormDescription.textContent = "Un registro de equipo y sus fechas representan la disponibilidad de ese equipo en esas fechas." + suffix;
+  }
+
+  function getSelectedDemoBundle() {
+    const selected = getSelectedDemoEvent();
+    const allTeams = config.demoTeams || [];
+    const allMatches = config.demoMatches || [];
+    if (!selected || selected.id === "all") {
+      return {
+        label: "Base demo completa",
+        teams: allTeams,
+        matches: allMatches,
+        adminConfig: config.demoAdminConfig || null
+      };
+    }
+    const teamsById = new Map(allTeams.map(function (team) { return [String(team.id), team]; }));
+    const matchesById = new Map(allMatches.map(function (match) { return [String(match.id), match]; }));
+    const selectedMatches = selected.matchIds.map(function (id) { return matchesById.get(String(id)); }).filter(Boolean);
+    const selectedTeams = selected.teamIds.map(function (id) { return teamsById.get(String(id)); }).filter(Boolean);
+    const synthesizedTeams = synthesizeTeamsFromMatches(selectedMatches, selected.id);
+    const mergedTeams = dedupeTeamsByName(selectedTeams.concat(synthesizedTeams));
+    return {
+      label: selected.label,
+      teams: mergedTeams,
+      matches: selectedMatches,
+      adminConfig: selected.adminConfig || config.demoAdminConfig || null
+    };
+  }
+
+  function synthesizeTeamsFromMatches(matches, prefix) {
+    const map = new Map();
+    (matches || []).forEach(function (match, matchIndex) {
+      [match.teamA, match.teamB].forEach(function (team, teamIndex) {
+        const name = String(team && team.name || "").trim();
+        if (!name || map.has(name)) return;
+        map.set(name, {
+          id: "demo-synth-" + prefix + "-" + matchIndex + "-" + teamIndex,
+          name: name,
+          branch: match.branch || "mixto",
+          category: match.category || "Libre",
+          date: match.date || "",
+          startTime: match.startTime || "00:00",
+          endTime: match.endTime || "00:00",
+          unavailableDates: [],
+          preferredDates: [],
+          overrideBlockedDates: [],
+          ownerEmail: "demo@ipv.mx",
+          createdAt: new Date().toISOString(),
+          logoUrl: team && team.logoUrl ? team.logoUrl : "",
+          participateInMatching: false
+        });
+      });
+    });
+    return Array.from(map.values());
+  }
+
+  function dedupeTeamsByName(items) {
+    const map = new Map();
+    (items || []).forEach(function (team) {
+      const key = String(team && team.name || "").trim().toLowerCase();
+      if (!key || map.has(key)) return;
+      map.set(key, team);
+    });
+    return Array.from(map.values());
+  }
+
   function normalizeImage(item) {
     if (typeof item === "string") return { url: safeImageUrl(item), name: "Imagen Drive" };
     const url = safeImageUrl(item.url || item.imageUrl || item.thumbnail || item.src || "");
@@ -1071,6 +1278,42 @@
       return input.map(function (item) { return typeof item === "string" ? splitBlockedDate(item) : { date: item.date || "", reason: item.reason || "" }; }).filter(function (item) { return item.date; });
     }
     return String(input || "").split(",").map(splitBlockedDate).filter(function (item) { return item.date; });
+  }
+
+  function getTeamLogoUrl(teamName, explicitUrl) {
+    const inferred = inferTeamLogoFromGallery(teamName);
+    if (inferred) return inferred;
+    const direct = safeImageUrl(explicitUrl || "");
+    if (direct && direct !== PLACEHOLDER) return direct;
+    return IPV_LOGO;
+  }
+
+  function inferTeamLogoFromGallery(teamName) {
+    const normalizedTeam = normalizeLoose(teamName);
+    if (!normalizedTeam) return "";
+    const gallery = state.galleries.teamLogo || [];
+    const aliases = [];
+    Object.keys(TEAM_LOGO_ALIASES).forEach(function (key) {
+      if (normalizedTeam.indexOf(key) >= 0) aliases.push.apply(aliases, TEAM_LOGO_ALIASES[key]);
+    });
+    aliases.push(normalizedTeam);
+    const match = gallery.find(function (item) {
+      const normalizedName = normalizeLoose(item.name || "");
+      return aliases.some(function (alias) { return alias && normalizedName.indexOf(normalizeLoose(alias)) >= 0; });
+    });
+    return match ? safeImageUrl(match.url) : "";
+  }
+
+  function applyLogoFallbacksFromGallery() {
+    state.teams = state.teams.map(function (team) {
+      return Object.assign({}, team, { logoUrl: getTeamLogoUrl(team.name, team.logoUrl) });
+    });
+    state.matches = state.matches.map(function (match) {
+      return Object.assign({}, match, {
+        teamA: Object.assign({}, match.teamA || {}, { logoUrl: getTeamLogoUrl(match.teamA && match.teamA.name, match.teamA && match.teamA.logoUrl) }),
+        teamB: Object.assign({}, match.teamB || {}, { logoUrl: getTeamLogoUrl(match.teamB && match.teamB.name, match.teamB && match.teamB.logoUrl) })
+      });
+    });
   }
 
   function splitBlockedDate(value) {
@@ -1091,6 +1334,14 @@
     const idMatch = value.match(/[?&]id=([a-zA-Z0-9_-]+)/) || value.match(/\/d\/([a-zA-Z0-9_-]+)/);
     if (idMatch && idMatch[1]) return "https://drive.google.com/thumbnail?id=" + idMatch[1] + "&sz=w1600";
     return value.indexOf("http") === 0 ? value : PLACEHOLDER;
+  }
+  function normalizeLoose(value) {
+    return String(value || "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, " ")
+      .trim();
   }
   function readJson(key, fallback) { try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; } catch (error) { return fallback; } }
 
