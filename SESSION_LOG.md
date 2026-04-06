@@ -708,3 +708,13 @@ Uso:
     - `node --check config.js`
   - nota de trazabilidad:
     - este primer commit local tambien consolidara cambios funcionales previos no comprometidos que ya formaban parte de la base de trabajo actual
+- Actividad 2 concluida: `Normalizacion de logos demo`
+  - se endurecio la regla de uso de `logoUrl` explicito para evitar logos cruzados de ejemplo en equipos demo
+  - los logos demo genericos de Felipinos y Centinelas ahora solo se aceptan cuando el nombre del equipo coincide con esos clubes / variantes esperadas
+  - si no hay match confiable por galeria ni por regla explicita, el fallback visual vuelve al logo oficial de iPV
+  - esto corrige la percepcion de calidad en:
+    - `Equipos > Listado visual`
+    - `Matching > Partidos sugeridos`
+    - `Vista alterna`
+  - verificacion:
+    - `node --check app.js`

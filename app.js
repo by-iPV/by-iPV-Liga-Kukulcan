@@ -12,6 +12,10 @@
     "slayers": ["slayers"],
     "cerberus": ["cerberus"]
   };
+  const TRUSTED_EXPLICIT_LOGO_RULES = [
+    { id: "15x5qLfJ9GfeYPJBCEqNLNFUl7gVmTiqs", keys: ["felipinos"] },
+    { id: "1POrPyQPEmetVsDhwXFMInfDTcAfiACcl", keys: ["centinelas", "pretorianas", "cdk", "ipv"] }
+  ];
   const SETTINGS_KEYS = {
     fondos: "backgroundFolderId",
     logos: "logosFolderId",
@@ -1284,7 +1288,7 @@
     const inferred = inferTeamLogoFromGallery(teamName);
     if (inferred) return inferred;
     const direct = safeImageUrl(explicitUrl || "");
-    if (direct && direct !== PLACEHOLDER) return direct;
+    if (shouldUseExplicitTeamLogo(teamName, direct)) return direct;
     return IPV_LOGO;
   }
 
@@ -1302,6 +1306,19 @@
       return aliases.some(function (alias) { return alias && normalizedName.indexOf(normalizeLoose(alias)) >= 0; });
     });
     return match ? safeImageUrl(match.url) : "";
+  }
+
+  function shouldUseExplicitTeamLogo(teamName, explicitUrl) {
+    const direct = safeImageUrl(explicitUrl || "");
+    if (!direct || direct === PLACEHOLDER) return false;
+    const normalizedTeam = normalizeLoose(teamName);
+    const trustedRule = TRUSTED_EXPLICIT_LOGO_RULES.find(function (rule) {
+      return direct.indexOf(rule.id) >= 0;
+    });
+    if (!trustedRule) return true;
+    return trustedRule.keys.some(function (key) {
+      return normalizedTeam.indexOf(normalizeLoose(key)) >= 0;
+    });
   }
 
   function applyLogoFallbacksFromGallery() {
