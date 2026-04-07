@@ -537,7 +537,17 @@ window.APP_CONFIG = {
       label: "Demo rapida · Tixkokob",
       matchIds: ["demo-match-tix-1", "demo-match-tix-2", "demo-match-tix-3", "demo-match-tix-4"],
       description: "Preset pequeno para revisar evento concluido con partidos, logos y bracket.",
-      bracketUrl: "https://by-ipv.github.io/cuadrangular-by-iPV/index.html?event=by-iPV-2026-TIX-CUAD-v1"
+      bracketUrl: "https://by-ipv.github.io/cuadrangular-by-iPV/index.html?event=by-iPV-2026-TIX-CUAD-v1",
+      podiums: [
+        {
+          category: "Preparatoria",
+          places: [
+            { rank: 1, team: "Felipinos Preparatoria" },
+            { rank: 2, team: "Centinelas Prepa - CDK" },
+            { rank: 3, team: "Centinelas/Pretorianas by iPV" }
+          ]
+        }
+      ]
     },
     {
       id: "future-prepa",
@@ -562,7 +572,17 @@ window.APP_CONFIG = {
       label: "Evento · Tixkokob 1",
       matchIds: ["demo-match-tix-1", "demo-match-tix-2", "demo-match-tix-3", "demo-match-tix-4"],
       description: "1er Cuadrangular Voleibol Tixkokob 2026.",
-      bracketUrl: "https://by-ipv.github.io/cuadrangular-by-iPV/index.html?event=by-iPV-2026-TIX-CUAD-v1"
+      bracketUrl: "https://by-ipv.github.io/cuadrangular-by-iPV/index.html?event=by-iPV-2026-TIX-CUAD-v1",
+      podiums: [
+        {
+          category: "Preparatoria",
+          places: [
+            { rank: 1, team: "Felipinos Preparatoria" },
+            { rank: 2, team: "Centinelas Prepa - CDK" },
+            { rank: 3, team: "Centinelas/Pretorianas by iPV" }
+          ]
+        }
+      ]
     },
     {
       id: "tixkokob-2",
@@ -587,7 +607,33 @@ window.APP_CONFIG = {
       id: "civolsur",
       label: "Evento · CIVOLSUR",
       matchIds: ["demo-match-civolsur-1", "demo-match-civolsur-2"],
-      description: "Demo base CIVOLSUR."
+      description: "Demo base CIVOLSUR.",
+      podiums: [
+        {
+          category: "Minivoleibol 2015 y menores Varonil / Mix",
+          places: [
+            { rank: 1, team: "TALENTOS" },
+            { rank: 2, team: "CLUB LECHUZAS CHETUMAL" },
+            { rank: 3, team: "MONKEYS" }
+          ]
+        },
+        {
+          category: "Juv Menor 2009-10 Fem",
+          places: [
+            { rank: 1, team: "LEGLISE JULIO" },
+            { rank: 2, team: "LEGLISE ALE" },
+            { rank: 3, team: "CUERVITAS" }
+          ]
+        },
+        {
+          category: "Libre Var",
+          places: [
+            { rank: 1, team: "UADY" },
+            { rank: 2, team: "CARIBUES" },
+            { rank: 3, team: "MEDUSAS TABASCO" }
+          ]
+        }
+      ]
     },
     {
       id: "rogers",

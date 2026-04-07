@@ -760,3 +760,17 @@ Uso:
   - no se toco el motor de demo ni el flujo base; solo se ordeno mejor la entrada al contenido demo pequeno
   - verificacion:
     - `node --check config.js`
+- Actividad 7 concluida: `Podio por evento/categoria`
+  - se agrego soporte estructural para `podiums` dentro de los eventos demo
+  - la UI ahora muestra `Podio por categoria` dentro de la vista de partidos cuando el evento demo activo tiene podio disponible
+  - se cargaron primeros podiums confirmados para:
+    - `Tixkokob 1`
+    - `Demo rapida · Tixkokob`
+    - `CIVOLSUR` (primer bloque confirmado)
+  - la tarjeta de podio resuelve logos usando la misma capa segura de logos del sistema
+  - si el evento no tiene podio, la seccion permanece oculta sin afectar el flujo actual
+  - nota de alcance:
+    - el modelo ya permite seguir agregando podiums por evento / categoria conforme se consoliden mas datos externos
+  - verificacion:
+    - `node --check app.js`
+    - `node --check config.js`

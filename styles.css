@@ -1278,6 +1278,69 @@ th {
   background: transparent;
 }
 
+.event-podium {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.event-podium-head {
+  margin-bottom: 0.75rem;
+}
+
+.event-podium-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.85rem;
+}
+
+.podium-card {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 20px;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.04);
+  display: grid;
+  gap: 0.85rem;
+}
+
+.podium-card h4 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.podium-places {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.podium-place {
+  display: grid;
+  grid-template-columns: auto 44px minmax(0, 1fr);
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.podium-rank {
+  min-width: 28px;
+  font-weight: 800;
+  color: var(--accent);
+}
+
+.podium-place img {
+  width: 44px;
+  height: 44px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.podium-team {
+  min-width: 0;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
 .team-card-logo-fallback {
   width: 68px;
   height: 68px;

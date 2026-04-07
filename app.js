@@ -90,7 +90,7 @@
   }
 
   function cacheElements() {
-    ["appBackground","sidebar","sidebarToggle","loginToggle","loginDropdown","authStatus","googleLoginButton","userSession","userName","userEmail","logoutBtn","backendBadge","backendHint","teamCount","overlapCount","matchCount","sponsorsCarousel","headerTeamLogos","heroLoginBtn","teamForm","teamName","branch","category","date","startTime","endTime","unavailableDates","preferredDates","participateInMatching","billingMode","paymentSummaryBox","teamLogoUrl","teamLogoPreview","saveTeamBtn","cancelEditBtn","messageBox","teamsTableBody","overlapsList","matchesList","viewEquiposList","viewPartidosList","visualConfigSection","backgroundSection","logosSection","sponsorsSection","backgroundFolderIdInput","logosFolderIdInput","sponsorsFolderIdInput","glassOpacityInput","enableCustomBackgroundInput","accentPresetSelect","accentExpandCardsInput","loadAllGalleriesBtn","saveVisualSettingsBtn","applyBackgroundBtn","applyTeamLogoBtn","reloadBackgroundGalleryBtn","reloadLogosGalleryBtn","reloadSponsorsGalleryBtn","backgroundGalleryStatus","backgroundGallery","logosGalleryStatus","logosGallery","sponsorsGalleryStatus","sponsorsGallery","adminForm","adminStartDate","adminEndDate","blockedDates","blockedDateInput","blockedReasonInput","matchingMode","groupCount","manualMatchingEnabled","addBlockedDateBtn","addRangeBtn","userBlockedView","blockedDatesReadable","generateMatchesBtn","saveMatchesBtn","acceptAllMatches","resetDemoBtn","demoEventSelect","teamFormDescription","viewBracketBtn"].forEach(function (id) {
+    ["appBackground","sidebar","sidebarToggle","loginToggle","loginDropdown","authStatus","googleLoginButton","userSession","userName","userEmail","logoutBtn","backendBadge","backendHint","teamCount","overlapCount","matchCount","sponsorsCarousel","headerTeamLogos","heroLoginBtn","teamForm","teamName","branch","category","date","startTime","endTime","unavailableDates","preferredDates","participateInMatching","billingMode","paymentSummaryBox","teamLogoUrl","teamLogoPreview","saveTeamBtn","cancelEditBtn","messageBox","teamsTableBody","overlapsList","matchesList","viewEquiposList","viewPartidosList","eventPodiumBox","eventPodiumStatus","eventPodiumList","visualConfigSection","backgroundSection","logosSection","sponsorsSection","backgroundFolderIdInput","logosFolderIdInput","sponsorsFolderIdInput","glassOpacityInput","enableCustomBackgroundInput","accentPresetSelect","accentExpandCardsInput","loadAllGalleriesBtn","saveVisualSettingsBtn","applyBackgroundBtn","applyTeamLogoBtn","reloadBackgroundGalleryBtn","reloadLogosGalleryBtn","reloadSponsorsGalleryBtn","backgroundGalleryStatus","backgroundGallery","logosGalleryStatus","logosGallery","sponsorsGalleryStatus","sponsorsGallery","adminForm","adminStartDate","adminEndDate","blockedDates","blockedDateInput","blockedReasonInput","matchingMode","groupCount","manualMatchingEnabled","addBlockedDateBtn","addRangeBtn","userBlockedView","blockedDatesReadable","generateMatchesBtn","saveMatchesBtn","acceptAllMatches","resetDemoBtn","demoEventSelect","teamFormDescription","viewBracketBtn"].forEach(function (id) {
       el[id] = document.getElementById(id);
     });
     el.navItems = Array.from(document.querySelectorAll(".nav-item"));
@@ -1080,9 +1080,24 @@
         bracketUrl: String(item.bracketUrl || "").trim(),
         classificationUrl: String(item.classificationUrl || "").trim(),
         scoreSheetUrl: String(item.scoreSheetUrl || "").trim(),
+        podiums: normalizeEventPodiums(item.podiums || []),
         adminConfig: item.adminConfig || null
       };
     }).filter(function (item) { return item.id; });
+  }
+
+  function normalizeEventPodiums(input) {
+    return (input || []).map(function (item) {
+      return {
+        category: String(item.category || "").trim(),
+        places: (item.places || []).map(function (place) {
+          return {
+            rank: Number(place.rank || 0),
+            team: String(place.team || "").trim()
+          };
+        }).filter(function (place) { return place.rank > 0 && place.team; })
+      };
+    }).filter(function (item) { return item.category && item.places.length; });
   }
 
   function normalizeMatches(input) {
@@ -1217,6 +1232,33 @@
       el.viewBracketBtn.classList.toggle("hidden", !hasBracket);
       el.viewBracketBtn.href = hasBracket ? selected.bracketUrl : "#";
     }
+    renderEventPodiums(selected);
+  }
+
+  function renderEventPodiums(selected) {
+    if (!el.eventPodiumBox || !el.eventPodiumStatus || !el.eventPodiumList) return;
+    const podiums = selected && Array.isArray(selected.podiums) ? selected.podiums : [];
+    const hasPodiums = podiums.length > 0;
+    el.eventPodiumBox.classList.toggle("hidden", !hasPodiums);
+    el.eventPodiumStatus.textContent = hasPodiums ? "Resultados destacados del evento demo activo." : "Sin podio disponible para este evento.";
+    el.eventPodiumList.innerHTML = hasPodiums ? podiums.map(function (podium) {
+      return `
+        <article class="podium-card">
+          <h4>${escapeHtml(podium.category)}</h4>
+          <div class="podium-places">
+            ${podium.places.map(function (place) {
+              return `
+                <div class="podium-place">
+                  <span class="podium-rank">#${place.rank}</span>
+                  <img src="${getTeamLogoUrl(place.team)}" alt="${escapeHtml(place.team)}">
+                  <span class="podium-team">${escapeHtml(place.team)}</span>
+                </div>
+              `;
+            }).join("")}
+          </div>
+        </article>
+      `;
+    }).join("") : "";
   }
 
   function getSelectedDemoBundle() {
