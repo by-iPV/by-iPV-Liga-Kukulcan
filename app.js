@@ -166,6 +166,8 @@
     const url = String(config.appsScriptUrl || "").trim();
     if (!url) {
       const data = readJson(config.localStorageKey || "ipv-matchmaking-data", {});
+      if (data.pricingConfig) state.pricingConfig = normalizePricingConfig(data.pricingConfig);
+      if (Array.isArray(data.categoryPricing)) state.categoryPricing = normalizeCategoryPricing(data.categoryPricing);
       state.teams = normalizeTeams(data.teams || []);
       state.matches = normalizeMatches(data.matches || []);
       state.adminConfig = normalizeAdminConfig(data.adminConfig || state.adminConfig);
@@ -1018,7 +1020,13 @@
   }
 
   function persistData() {
-    const payload = { teams: state.teams, matches: state.matches, adminConfig: state.adminConfig };
+    const payload = {
+      teams: state.teams,
+      matches: state.matches,
+      adminConfig: state.adminConfig,
+      pricingConfig: state.pricingConfig,
+      categoryPricing: state.categoryPricing
+    };
     localStorage.setItem(config.localStorageKey || "ipv-matchmaking-data", JSON.stringify(payload));
   }
 

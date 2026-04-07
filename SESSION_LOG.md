@@ -787,3 +787,14 @@ Uso:
   - no se altero la forma de guardado; solo se hizo visible el desglose ya existente
   - verificacion:
     - `node --check app.js`
+- Actividad 9 concluida: `Persistencia remota financiera`
+  - el snapshot persistido en `localStorage` ahora guarda tambien:
+    - `pricingConfig`
+    - `categoryPricing`
+  - el arranque en `Modo local` ya recupera esos datos financieros desde el mismo snapshot persistido
+  - esto deja alineado el fallback local con la forma en que el bootstrap remoto ya consume `pricingConfig` y `categoryPricing`
+  - nota de alcance:
+    - la base actual no expone aun endpoints remotos especificos de escritura para estas hojas
+    - por estabilidad, se dejo preparada la compatibilidad de lectura / snapshot sin forzar una escritura remota inexistente
+  - verificacion:
+    - `node --check app.js`
