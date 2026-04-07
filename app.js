@@ -541,13 +541,14 @@
   }
 
   function renderAuth() {
-    const isLogged = Boolean(state.loggedUser && state.loggedUser.email);
+    const access = getAccessState();
+    const isLogged = can("authenticated");
     el.loginDropdown.classList.toggle("hidden", !el.loginDropdown.dataset.open);
     el.heroLoginBtn.classList.toggle("is-google-icon", isLogged);
     el.heroLoginBtn.innerHTML = isLogged ? "<span class='google-mark' aria-hidden='true'>G</span>" : "Acceso con Google";
     el.heroLoginBtn.setAttribute("aria-label", isLogged ? "Cuenta de Google" : "Acceso con Google");
     if (isLogged) {
-      el.authStatus.textContent = isAdmin() ? "Sesión activa como administrador." : "Sesión activa. Puedes editar tus equipos.";
+      el.authStatus.textContent = access.admin ? "Sesión activa como administrador." : "Sesión activa. Puedes editar tus equipos.";
       el.userSession.classList.remove("hidden");
       el.userName.textContent = state.loggedUser.name || "Usuario";
       el.userEmail.textContent = state.loggedUser.email || "";
@@ -560,22 +561,20 @@
   }
 
   function renderConnectedVisibility() {
-    const isLogged = Boolean(state.loggedUser && state.loggedUser.email);
-    el.saveTeamBtn.classList.toggle("hidden", !isLogged);
-    el.cancelEditBtn.classList.toggle("hidden", !isLogged || !state.editingTeamId);
-    el.saveVisualSettingsBtn.classList.toggle("hidden", !isLogged);
-    el.saveMatchesBtn.classList.toggle("hidden", !isLogged);
-    el.applyTeamLogoBtn.classList.toggle("hidden", !isLogged);
-    el.acceptAllMatches.closest(".accept-all").classList.toggle("hidden", !isLogged);
-    el.participateInMatching.closest("label").classList.toggle("hidden", !isLogged);
-    if (!isLogged && state.editingTeamId) {
+    el.saveTeamBtn.classList.toggle("hidden", !can("save-team"));
+    el.cancelEditBtn.classList.toggle("hidden", !can("save-team") || !state.editingTeamId);
+    el.saveVisualSettingsBtn.classList.toggle("hidden", !can("save-visuals"));
+    el.saveMatchesBtn.classList.toggle("hidden", !can("save-matches"));
+    el.applyTeamLogoBtn.classList.toggle("hidden", !can("apply-team-logo"));
+    el.acceptAllMatches.closest(".accept-all").classList.toggle("hidden", !can("save-matches"));
+    el.participateInMatching.closest("label").classList.toggle("hidden", !can("save-team"));
+    if (!can("authenticated") && state.editingTeamId) {
       state.editingTeamId = "";
     }
   }
 
   function renderReadOnlyDisconnected() {
-    const isLogged = Boolean(state.loggedUser && state.loggedUser.email);
-    const lock = !isLogged;
+    const lock = can("readonly-disconnected");
     [
       el.teamName,
       el.branch,
@@ -636,14 +635,13 @@
 
   function renderPreRegisteredContext() {
     if (!el.preRegisteredBox || !el.preRegisteredTeamSelect || !el.preRegisteredStatus) return;
-    const isLogged = Boolean(state.loggedUser && state.loggedUser.email);
     const options = getCurrentUserPreRegisteredTeams();
-    const hasOptions = isLogged && options.length > 0;
+    const hasOptions = can("use-pre-registered") && options.length > 0;
     el.preRegisteredBox.classList.toggle("hidden", !hasOptions);
     setFieldLockState(false);
     if (!hasOptions) {
       el.preRegisteredTeamSelect.innerHTML = "<option value=''>Selecciona un equipo pre-registrado</option>";
-      el.preRegisteredStatus.textContent = isLogged ? "Sin datos de pre-registro para esta sesión." : "Inicia sesión para revisar equipos pre-registrados.";
+      el.preRegisteredStatus.textContent = can("authenticated") ? "Sin datos de pre-registro para esta sesión." : "Inicia sesión para revisar equipos pre-registrados.";
       return;
     }
     const currentValue = state.editingTeamId ? "" : (el.preRegisteredTeamSelect.value || options[0].id);
@@ -748,7 +746,7 @@
     }).join("");
   }
   function renderMatches() {
-    const isLogged = Boolean(state.loggedUser && state.loggedUser.email);
+    const canManageMatches = can("save-matches");
     if (!state.matches.length) {
       el.matchesList.innerHTML = "<div class='empty-state'>Todavía no se han generado partidos.</div>";
       el.acceptAllMatches.checked = false;
@@ -757,14 +755,14 @@
     }
     if (!state.matchUi.selectedMatchId || !state.matches.some(function (item) { return item.id === state.matchUi.selectedMatchId; })) {
       state.matchUi.selectedMatchId = state.matches[0].id;
-    }
-    state.matchUi.draftAccepted = buildDraftAccepted();
-    el.matchesList.innerHTML = state.matches.map(function (match) {
-      const venueValue = formatVenueLabel(match);
-      const venueSubline = match.court || (match.venue ? "Cancha por confirmar" : "Sede por confirmar");
-      const action = isLogged ? "<label class='match-summary-action' aria-label='Aceptar partido'><input type='checkbox' class='accept-match' data-id='" + esc(match.id) + "' " + (state.matchUi.draftAccepted[match.id] ? "checked" : "") + "></label>" : "";
-      return "<article class='match-summary" + (state.matchUi.selectedMatchId === match.id ? " is-active" : "") + "' data-id='" + esc(match.id) + "'><div class='match-summary-party'><strong class='match-summary-title'>" + esc(match.teamA.name) + "</strong><span class='match-summary-meta'>" + esc(match.branch + " · " + match.category + (match.group ? " · " + match.group : "")) + "</span></div><div class='match-summary-opponent'><strong class='match-summary-title'>" + esc(match.teamB.name) + "</strong><span class='match-summary-meta'>" + esc(match.startTime + " - " + match.endTime) + "</span></div><div class='match-summary-meta'><strong class='match-summary-title'>" + esc(formatHumanDate(match.date)) + "</strong><span>" + esc(match.date) + "</span></div><div class='match-summary-meta'><strong class='match-summary-title'>" + esc(venueValue) + "</strong><span>" + esc(venueSubline) + "</span></div>" + action + "</article>";
-    }).join("");
+      }
+      state.matchUi.draftAccepted = buildDraftAccepted();
+      el.matchesList.innerHTML = state.matches.map(function (match) {
+        const venueValue = formatVenueLabel(match);
+        const venueSubline = match.court || (match.venue ? "Cancha por confirmar" : "Sede por confirmar");
+        const action = canManageMatches ? "<label class='match-summary-action' aria-label='Aceptar partido'><input type='checkbox' class='accept-match' data-id='" + esc(match.id) + "' " + (state.matchUi.draftAccepted[match.id] ? "checked" : "") + "></label>" : "";
+        return "<article class='match-summary" + (state.matchUi.selectedMatchId === match.id ? " is-active" : "") + "' data-id='" + esc(match.id) + "'><div class='match-summary-party'><strong class='match-summary-title'>" + esc(match.teamA.name) + "</strong><span class='match-summary-meta'>" + esc(match.branch + " · " + match.category + (match.group ? " · " + match.group : "")) + "</span></div><div class='match-summary-opponent'><strong class='match-summary-title'>" + esc(match.teamB.name) + "</strong><span class='match-summary-meta'>" + esc(match.startTime + " - " + match.endTime) + "</span></div><div class='match-summary-meta'><strong class='match-summary-title'>" + esc(formatHumanDate(match.date)) + "</strong><span>" + esc(match.date) + "</span></div><div class='match-summary-meta'><strong class='match-summary-title'>" + esc(venueValue) + "</strong><span>" + esc(venueSubline) + "</span></div>" + action + "</article>";
+      }).join("");
     el.matchesList.querySelectorAll(".match-summary").forEach(function (card) {
       card.addEventListener("click", function () {
         state.matchUi.selectedMatchId = card.dataset.id;
@@ -786,7 +784,7 @@
   }
 
   function renderCompactMatches() {
-    const isLogged = Boolean(state.loggedUser && state.loggedUser.email);
+    const canManageMatches = can("save-matches");
     if (!state.matches.length) {
       el.viewPartidosList.innerHTML = "<div class='empty-state'>Selecciona un partido para ver su detalle.</div>";
       return;
@@ -797,13 +795,13 @@
       return;
     }
     const badge = dateBadge(selected.date);
-    const accepted = Boolean(state.matchUi.draftAccepted[selected.id]);
-    const venueLink = getVenueLink(selected.venue);
-    const venueValue = formatVenueLabel(selected);
-    const venueHtml = venueLink ? "<a class='match-link' href='" + esc(venueLink) + "' target='_blank' rel='noopener noreferrer'>" + esc(venueValue) + "</a>" : esc(venueValue);
-    const alternatives = renderAlternatives(selected.alternatives);
-    const detailAction = isLogged ? "<label class='match-detail-actions'><input type='checkbox' class='accept-match-detail' data-id='" + esc(selected.id) + "' " + (accepted ? "checked" : "") + "><span>Aceptar este partido</span></label>" : "";
-    el.viewPartidosList.innerHTML = "<article class='match-card match-detail-card'><div class='match-detail-header'><div class='match-date-badge'><span class='match-date-day'>" + esc(badge.day) + "</span><span class='match-date-month'>" + esc(badge.month) + "</span></div><div class='match-detail-team'>" + renderMatchLogo(selected.teamA.logoUrl, selected.teamA.name, selected.teamA.preRegisteredId) + "<strong>" + esc(selected.teamA.name) + "</strong></div><div class='match-detail-vs'>VS</div><div class='match-detail-team'>" + renderMatchLogo(selected.teamB.logoUrl, selected.teamB.name, selected.teamB.preRegisteredId) + "<strong>" + esc(selected.teamB.name) + "</strong></div><div class='match-detail-side'><span class='match-detail-label'>Estado</span><span class='tag'>" + esc(accepted ? "Aceptado" : "Pendiente") + "</span></div></div><div class='match-detail-grid'><div class='match-detail-block'><span class='match-detail-label'>Partido sugerido</span><span class='match-detail-value'>" + esc(selected.teamA.name) + "</span></div><div class='match-detail-block'><span class='match-detail-label'>Rival</span><span class='match-detail-value'>" + esc(selected.teamB.name) + "</span></div><div class='match-detail-block'><span class='match-detail-label'>Fecha</span><span class='match-detail-value'>" + esc(formatHumanDate(selected.date) + " · " + selected.startTime + " - " + selected.endTime) + "</span></div><div class='match-detail-block'><span class='match-detail-label'>Sede</span><span class='match-detail-value'>" + venueHtml + "</span></div></div><div class='match-detail-block'><span class='match-detail-label'>Categoría del cruce</span><span class='match-detail-value'>" + esc(selected.branch + " · " + selected.category + (selected.group ? " · " + selected.group : "")) + "</span></div><div class='match-detail-footer'><div><span class='match-detail-label'>Alternativas</span><div class='match-alt-list'>" + (alternatives || "<span class='small-muted'>Sin alternativas disponibles.</span>") + "</div></div>" + detailAction + "</div></article>";
+      const accepted = Boolean(state.matchUi.draftAccepted[selected.id]);
+      const venueLink = getVenueLink(selected.venue);
+      const venueValue = formatVenueLabel(selected);
+      const venueHtml = venueLink ? "<a class='match-link' href='" + esc(venueLink) + "' target='_blank' rel='noopener noreferrer'>" + esc(venueValue) + "</a>" : esc(venueValue);
+      const alternatives = renderAlternatives(selected.alternatives);
+      const detailAction = canManageMatches ? "<label class='match-detail-actions'><input type='checkbox' class='accept-match-detail' data-id='" + esc(selected.id) + "' " + (accepted ? "checked" : "") + "><span>Aceptar este partido</span></label>" : "";
+      el.viewPartidosList.innerHTML = "<article class='match-card match-detail-card'><div class='match-detail-header'><div class='match-date-badge'><span class='match-date-day'>" + esc(badge.day) + "</span><span class='match-date-month'>" + esc(badge.month) + "</span></div><div class='match-detail-team'>" + renderMatchLogo(selected.teamA.logoUrl, selected.teamA.name, selected.teamA.preRegisteredId) + "<strong>" + esc(selected.teamA.name) + "</strong></div><div class='match-detail-vs'>VS</div><div class='match-detail-team'>" + renderMatchLogo(selected.teamB.logoUrl, selected.teamB.name, selected.teamB.preRegisteredId) + "<strong>" + esc(selected.teamB.name) + "</strong></div><div class='match-detail-side'><span class='match-detail-label'>Estado</span><span class='tag'>" + esc(accepted ? "Aceptado" : "Pendiente") + "</span></div></div><div class='match-detail-grid'><div class='match-detail-block'><span class='match-detail-label'>Partido sugerido</span><span class='match-detail-value'>" + esc(selected.teamA.name) + "</span></div><div class='match-detail-block'><span class='match-detail-label'>Rival</span><span class='match-detail-value'>" + esc(selected.teamB.name) + "</span></div><div class='match-detail-block'><span class='match-detail-label'>Fecha</span><span class='match-detail-value'>" + esc(formatHumanDate(selected.date) + " · " + selected.startTime + " - " + selected.endTime) + "</span></div><div class='match-detail-block'><span class='match-detail-label'>Sede</span><span class='match-detail-value'>" + venueHtml + "</span></div></div><div class='match-detail-block'><span class='match-detail-label'>Categoría del cruce</span><span class='match-detail-value'>" + esc(selected.branch + " · " + selected.category + (selected.group ? " · " + selected.group : "")) + "</span></div><div class='match-detail-footer'><div><span class='match-detail-label'>Alternativas</span><div class='match-alt-list'>" + (alternatives || "<span class='small-muted'>Sin alternativas disponibles.</span>") + "</div></div>" + detailAction + "</div></article>";
     const detailCheckbox = el.viewPartidosList.querySelector(".accept-match-detail");
     if (detailCheckbox) {
       detailCheckbox.addEventListener("change", function () {
@@ -1200,9 +1198,51 @@
 
   function emptyGallery(text) { return "<div class='empty-shell'>" + esc(text || "No hay imágenes disponibles en la carpeta") + "</div>"; }
   function skeletonGallery() { return "<div class='skeleton-card'></div><div class='skeleton-card'></div><div class='skeleton-card'></div>"; }
-  function requireSession() { if (state.loggedUser && state.loggedUser.email) return true; showMessage("Inicia sesión con Google para continuar", "error"); return false; }
-  function canEditTeam(team) { return isAdmin() || (state.loggedUser && team.ownerEmail === state.loggedUser.email); }
-  function isAdmin() { const email = state.loggedUser && state.loggedUser.email ? state.loggedUser.email.toLowerCase() : ""; return Boolean(email && state.settings.adminEmails.indexOf(email) >= 0); }
+  function requireSession() { if (can("authenticated")) return true; showMessage("Inicia sesión con Google para continuar", "error"); return false; }
+  function canEditTeam(team) { return can("edit-team", team); }
+  function isAdmin() { return can("admin"); }
+  function getCurrentUserEmail() {
+    return normalizeKey(state.loggedUser && state.loggedUser.email || "");
+  }
+  function getAccessState() {
+    const email = getCurrentUserEmail();
+    const logged = Boolean(email);
+    const admin = Boolean(email && state.settings.adminEmails.indexOf(email) >= 0);
+    const hasPreRegistered = logged && getCurrentUserPreRegisteredTeams().length > 0;
+    return {
+      email: email,
+      logged: logged,
+      admin: admin,
+      hasPreRegistered: hasPreRegistered,
+      mode: !logged ? "offline-readonly" : (admin ? "admin" : (hasPreRegistered ? "pre-registered-user" : "user"))
+    };
+  }
+  function can(action, subject) {
+    const access = getAccessState();
+    switch (action) {
+      case "authenticated":
+        return access.logged;
+      case "admin":
+        return access.admin;
+      case "edit-team":
+        return access.admin || Boolean(access.email && subject && normalizeKey(subject.ownerEmail || "") === access.email);
+      case "save-team":
+      case "save-visuals":
+      case "apply-team-logo":
+      case "save-matches":
+      case "generate-matches":
+        return access.logged;
+      case "view-admin":
+      case "manage-admin-config":
+        return access.admin;
+      case "use-pre-registered":
+        return access.logged && access.hasPreRegistered;
+      case "readonly-disconnected":
+        return !access.logged;
+      default:
+        return false;
+    }
+  }
   function isBlockedDate(date) { return state.adminConfig.blockedDates.some(function (item) { return item.date === date; }); }
 
   function normalizeSettings(input, loggedUser) {

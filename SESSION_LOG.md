@@ -850,3 +850,28 @@ Uso:
   - la UI muestra un mensaje claro de `Modo solo lectura`
   - verificacion:
     - `node --check app.js`
+- Actividad 14 concluida: `Capa encapsulada de permisos`
+  - se creo una capa unica de acceso basada en:
+    - `getAccessState()`
+    - `can(action, subject)`
+  - la app ya resuelve de forma centralizada estados como:
+    - `offline-readonly`
+    - `user`
+    - `pre-registered-user`
+    - `admin`
+  - se conecto esa capa a superficies ya existentes para no romper la base:
+    - auth / dropdown de Google
+    - acciones de registro
+    - acciones de visuales
+    - acciones de matching
+    - pre-registro
+    - modo solo lectura desconectado
+  - los wrappers historicos siguen existiendo por compatibilidad:
+    - `requireSession()`
+    - `canEditTeam()`
+    - `isAdmin()`
+  - nota de alcance:
+    - esta actividad no rediseña aun todos los permisos futuros del sistema
+    - deja la base encapsulada y reutilizable para que `pre-registro`, `offline-readonly` y permisos mas finos se sigan montando sin volver a dispersar reglas
+  - verificacion:
+    - `node --check app.js`
