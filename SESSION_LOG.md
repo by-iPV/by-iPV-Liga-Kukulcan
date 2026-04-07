@@ -818,3 +818,15 @@ Uso:
   - verificacion:
     - `node --check app.js`
     - `node --check config.js`
+- Actividad 11 concluida: `Pre-registro`
+  - se agrego soporte estructural para `preRegisteredTeams` en el estado, el snapshot local y el bootstrap remoto
+  - la UI del formulario ahora puede mostrar un selector de equipos pre-registrados para la cuenta autenticada
+  - cuando hay un equipo pre-registrado seleccionado:
+    - se precargan `nombre`, `rama`, `categoria` y `logo` si existen
+    - `nombre`, `rama` y `categoria` quedan bloqueados para proteger la base del pre-registro
+  - el guardado de `Team` ya conserva `preRegisteredId` de forma compatible
+  - nota de alcance:
+    - esta capa solo se activa si llegan datos reales de `preRegisteredTeams` / `Equipos_Inscritos`
+    - sin esos datos, el flujo actual se mantiene intacto
+  - verificacion:
+    - `node --check app.js`
