@@ -1077,6 +1077,9 @@
         description: String(item.description || "").trim(),
         teamIds: Array.isArray(item.teamIds) ? item.teamIds.map(String) : [],
         matchIds: Array.isArray(item.matchIds) ? item.matchIds.map(String) : [],
+        bracketUrl: String(item.bracketUrl || "").trim(),
+        classificationUrl: String(item.classificationUrl || "").trim(),
+        scoreSheetUrl: String(item.scoreSheetUrl || "").trim(),
         adminConfig: item.adminConfig || null
       };
     }).filter(function (item) { return item.id; });
@@ -1084,7 +1087,7 @@
 
   function normalizeMatches(input) {
     return (input || []).map(function (match) {
-      return { id: match.id || createId("match"), teamA: match.teamA || { name: match.teamAName || "Equipo A", logoUrl: "" }, teamB: match.teamB || { name: match.teamBName || "Equipo B", logoUrl: "" }, branch: match.branch || "mixto", category: match.category || "Libre", group: match.group || "", date: match.date || "", startTime: match.startTime || "", endTime: match.endTime || "", venue: match.venue || "Por confirmar", court: match.court || "", alternatives: match.alternatives || [], accepted: Boolean(match.accepted) };
+      return { id: match.id || createId("match"), teamA: match.teamA || { name: match.teamAName || "Equipo A", logoUrl: "" }, teamB: match.teamB || { name: match.teamBName || "Equipo B", logoUrl: "" }, branch: match.branch || "mixto", category: match.category || "Libre", group: match.group || "", date: match.date || "", startTime: match.startTime || "", endTime: match.endTime || "", venue: match.venue || "Por confirmar", court: match.court || "", alternatives: match.alternatives || [], scoreSheetUrl: String(match.scoreSheetUrl || "").trim(), accepted: Boolean(match.accepted) };
     });
   }
 
@@ -1220,6 +1223,7 @@
         label: "Base demo completa",
         teams: allTeams,
         matches: allMatches,
+        event: selected,
         adminConfig: config.demoAdminConfig || null
       };
     }
@@ -1233,6 +1237,7 @@
       label: selected.label,
       teams: mergedTeams,
       matches: selectedMatches,
+      event: selected,
       adminConfig: selected.adminConfig || config.demoAdminConfig || null
     };
   }

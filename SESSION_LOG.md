@@ -732,3 +732,14 @@ Uso:
     - `Matching > Partidos sugeridos`
   - verificacion:
     - `node --check app.js`
+- Actividad 4 concluida: `Recursos externos por evento`
+  - se preparo soporte estructural para recursos por evento:
+    - `bracketUrl`
+    - `classificationUrl`
+    - `scoreSheetUrl`
+  - se agregaron ya los primeros `bracketUrl` reales para los eventos demo de Tixkokob
+  - `getSelectedDemoBundle()` ahora conserva el evento seleccionado y sus recursos para que la UI pueda usarlos en actividades posteriores
+  - el modelo de `Match` quedo listo para guardar `scoreSheetUrl` sin romper compatibilidad
+  - verificacion:
+    - `node --check app.js`
+    - `node --check config.js`

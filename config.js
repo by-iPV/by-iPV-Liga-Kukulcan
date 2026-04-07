@@ -542,13 +542,15 @@ window.APP_CONFIG = {
       id: "tixkokob-1",
       label: "Evento · Tixkokob 1",
       matchIds: ["demo-match-tix-1", "demo-match-tix-2", "demo-match-tix-3", "demo-match-tix-4"],
-      description: "1er Cuadrangular Voleibol Tixkokob 2026."
+      description: "1er Cuadrangular Voleibol Tixkokob 2026.",
+      bracketUrl: "https://by-ipv.github.io/cuadrangular-by-iPV/index.html?event=by-iPV-2026-TIX-CUAD-v1"
     },
     {
       id: "tixkokob-2",
       label: "Evento · Tixkokob 2",
       matchIds: ["demo-match-tix2-1", "demo-match-tix2-2"],
-      description: "2° Cuadrangular Voleibol Tixkokob 2026."
+      description: "2° Cuadrangular Voleibol Tixkokob 2026.",
+      bracketUrl: "https://by-ipv.github.io/cuadrangular-by-iPV/index.html?event=by-iPV-2026-TIX-CUAD-v2"
     },
     {
       id: "conmemorativo-mixto",
