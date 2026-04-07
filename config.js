@@ -521,6 +521,25 @@ window.APP_CONFIG = {
       description: "Carga la mezcla actual de demos futuros e historicos."
     },
     {
+      id: "quick-campus",
+      label: "Demo rapida · Campus y prepas",
+      matchIds: ["demo-match-rogers-1", "demo-match-rogers-2", "demo-match-anahuac-1"],
+      description: "Preset pequeno para validar sedes educativas, logos y detalle de partido."
+    },
+    {
+      id: "quick-comunidad",
+      label: "Demo rapida · Comunidad con logos",
+      matchIds: ["demo-match-mixto-1", "demo-match-mixto-2", "demo-match-3f-1", "demo-match-3f-2"],
+      description: "Preset pequeno con equipos comunitarios y logos mas distintivos."
+    },
+    {
+      id: "quick-tixkokob",
+      label: "Demo rapida · Tixkokob",
+      matchIds: ["demo-match-tix-1", "demo-match-tix-2", "demo-match-tix-3", "demo-match-tix-4"],
+      description: "Preset pequeno para revisar evento concluido con partidos, logos y bracket.",
+      bracketUrl: "https://by-ipv.github.io/cuadrangular-by-iPV/index.html?event=by-iPV-2026-TIX-CUAD-v1"
+    },
+    {
       id: "future-prepa",
       label: "Demo futura · Preparatoria",
       teamIds: ["demo-prepa-1", "demo-prepa-2", "demo-prepa-3", "demo-prepa-4"],

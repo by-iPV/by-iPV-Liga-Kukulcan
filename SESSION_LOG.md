@@ -750,3 +750,13 @@ Uso:
   - la implementacion reutiliza el contexto ya preparado por el selector de eventos demo y por los recursos externos del evento
   - verificacion:
     - `node --check app.js`
+- Actividad 6 concluida: `Demo pequeño rapido`
+  - se agregaron tres presets curados para pruebas rapidas sin sobrepoblar la app:
+    - `Demo rapida · Campus y prepas`
+    - `Demo rapida · Comunidad con logos`
+    - `Demo rapida · Tixkokob`
+  - estos presets reutilizan datasets ya estables y los presentan como accesos de validacion rapida
+  - `Demo rapida · Tixkokob` conserva `bracketUrl` para mantener el flujo de `Ver Cuadro de Competencia`
+  - no se toco el motor de demo ni el flujo base; solo se ordeno mejor la entrada al contenido demo pequeno
+  - verificacion:
+    - `node --check config.js`
