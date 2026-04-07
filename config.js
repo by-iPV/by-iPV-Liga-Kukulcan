@@ -30,6 +30,12 @@ window.APP_CONFIG = {
     credentials: 360,
     refereeGamesRequired: 5
   },
+  bookingConfig: {
+    label: "Agendar",
+    storeLabel: "Tienda DGD",
+    storeUrl: "",
+    commitmentText: "Agendar confirma el compromiso de respetar ese horario de disponibilidad y continuar el proceso de pago fuera de esta app."
+  },
   categoryPricing: [
     { category: "Cachi", refereeCash: 175, refereeInvoice: 225 },
     { category: "Micro", refereeCash: 175, refereeInvoice: 225 },

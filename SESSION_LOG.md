@@ -875,3 +875,25 @@ Uso:
     - deja la base encapsulada y reutilizable para que `pre-registro`, `offline-readonly` y permisos mas finos se sigan montando sin volver a dispersar reglas
   - verificacion:
     - `node --check app.js`
+- Actividad 15 concluida: `Modo Agendar`
+  - se agrego una primera capa funcional y compatible de `Agendar` dentro del formulario actual de registro
+  - el usuario ahora puede:
+    - marcar `Agendar disponibilidad de este equipo`
+    - ver un resumen contextual del compromiso de agenda en tiempo real
+    - conservar ese estado al guardar el equipo
+  - el modelo `Team` ahora soporta de forma compatible:
+    - `bookingIntent`
+    - `bookingStatus`
+    - `bookingSummary`
+  - el resumen visible de equipo tambien refleja si la agenda fue solicitada
+  - se agrego `bookingConfig` en configuracion para preparar:
+    - etiqueta del modo
+    - texto de compromiso
+    - link futuro a tienda DGD
+  - nota de alcance:
+    - no se implemento pago dentro de la app
+    - el link externo a tienda DGD queda preparado pero oculto mientras `storeUrl` no este configurado
+    - esto deja la base lista para evolucionar despues hacia agenda + checkout externo sin romper la version actual
+  - verificacion:
+    - `node --check app.js`
+    - `node --check config.js`

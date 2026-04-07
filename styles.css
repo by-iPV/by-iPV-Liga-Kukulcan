@@ -838,6 +838,33 @@ textarea:focus {
   color: #fff1bf;
 }
 
+.booking-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.booking-toggle input {
+  width: 18px;
+  height: 18px;
+}
+
+.booking-summary-box {
+  min-height: 88px;
+  padding: 12px 16px;
+  background: rgba(251, 180, 0, 0.08);
+  border: 1px solid rgba(251, 180, 0, 0.22);
+  border-radius: var(--radius-lg);
+  color: var(--text);
+  line-height: 1.45;
+}
+
+.booking-summary-box strong {
+  color: #fff1bf;
+}
+
 .logo-preview,
 .message-box,
 .gallery-status,

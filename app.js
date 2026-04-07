@@ -38,6 +38,7 @@
     adminConfig: normalizeAdminConfig(config.adminConfig || {}),
     capacity: normalizeCapacity(config.capacityRows || []),
     pricingConfig: normalizePricingConfig(config.pricingConfig || {}),
+    bookingConfig: normalizeBookingConfig(config.bookingConfig || {}),
     categoryPricing: normalizeCategoryPricing(config.categoryPricing || []),
     preRegisteredTeams: normalizePreRegisteredTeams(config.preRegisteredTeams || []),
     configRows: null,
@@ -91,7 +92,7 @@
   }
 
   function cacheElements() {
-    ["appBackground","sidebar","sidebarToggle","loginToggle","loginDropdown","authStatus","googleLoginButton","userSession","userName","userEmail","logoutBtn","backendBadge","backendHint","teamCount","overlapCount","matchCount","sponsorsCarousel","headerTeamLogos","heroLoginBtn","teamForm","teamName","branch","category","date","startTime","endTime","unavailableDates","preferredDates","participateInMatching","billingMode","paymentSummaryBox","preRegisteredBox","preRegisteredTeamSelect","preRegisteredStatus","teamLogoUrl","teamLogoPreview","saveTeamBtn","cancelEditBtn","messageBox","teamsTableBody","overlapsList","matchesList","viewEquiposList","viewPartidosList","eventPodiumBox","eventPodiumStatus","eventPodiumList","eventStandingsBox","eventStandingsStatus","eventStandingsList","visualConfigSection","backgroundSection","logosSection","sponsorsSection","backgroundFolderIdInput","logosFolderIdInput","sponsorsFolderIdInput","glassOpacityInput","enableCustomBackgroundInput","accentPresetSelect","accentExpandCardsInput","loadAllGalleriesBtn","saveVisualSettingsBtn","applyBackgroundBtn","applyTeamLogoBtn","reloadBackgroundGalleryBtn","reloadLogosGalleryBtn","reloadSponsorsGalleryBtn","backgroundGalleryStatus","backgroundGallery","logosGalleryStatus","logosGallery","sponsorsGalleryStatus","sponsorsGallery","adminForm","adminStartDate","adminEndDate","blockedDates","blockedDateInput","blockedReasonInput","matchingMode","groupCount","manualMatchingEnabled","addBlockedDateBtn","addRangeBtn","userBlockedView","blockedDatesReadable","generateMatchesBtn","saveMatchesBtn","acceptAllMatches","resetDemoBtn","demoEventSelect","teamFormDescription","viewBracketBtn"].forEach(function (id) {
+    ["appBackground","sidebar","sidebarToggle","loginToggle","loginDropdown","authStatus","googleLoginButton","userSession","userName","userEmail","logoutBtn","backendBadge","backendHint","teamCount","overlapCount","matchCount","sponsorsCarousel","headerTeamLogos","heroLoginBtn","teamForm","teamName","branch","category","date","startTime","endTime","unavailableDates","preferredDates","participateInMatching","billingMode","paymentSummaryBox","bookingIntent","bookingSummaryBox","bookingStoreLink","preRegisteredBox","preRegisteredTeamSelect","preRegisteredStatus","teamLogoUrl","teamLogoPreview","saveTeamBtn","cancelEditBtn","messageBox","teamsTableBody","overlapsList","matchesList","viewEquiposList","viewPartidosList","eventPodiumBox","eventPodiumStatus","eventPodiumList","eventStandingsBox","eventStandingsStatus","eventStandingsList","visualConfigSection","backgroundSection","logosSection","sponsorsSection","backgroundFolderIdInput","logosFolderIdInput","sponsorsFolderIdInput","glassOpacityInput","enableCustomBackgroundInput","accentPresetSelect","accentExpandCardsInput","loadAllGalleriesBtn","saveVisualSettingsBtn","applyBackgroundBtn","applyTeamLogoBtn","reloadBackgroundGalleryBtn","reloadLogosGalleryBtn","reloadSponsorsGalleryBtn","backgroundGalleryStatus","backgroundGallery","logosGalleryStatus","logosGallery","sponsorsGalleryStatus","sponsorsGallery","adminForm","adminStartDate","adminEndDate","blockedDates","blockedDateInput","blockedReasonInput","matchingMode","groupCount","manualMatchingEnabled","addBlockedDateBtn","addRangeBtn","userBlockedView","blockedDatesReadable","generateMatchesBtn","saveMatchesBtn","acceptAllMatches","resetDemoBtn","demoEventSelect","teamFormDescription","viewBracketBtn"].forEach(function (id) {
       el[id] = document.getElementById(id);
     });
     el.navItems = Array.from(document.querySelectorAll(".nav-item"));
@@ -123,6 +124,11 @@
     });
     el.category.addEventListener("change", updatePaymentSummary);
     el.billingMode.addEventListener("change", updatePaymentSummary);
+    if (el.bookingIntent) el.bookingIntent.addEventListener("change", updateBookingSummary);
+    [el.teamName, el.category, el.date, el.startTime, el.endTime].filter(Boolean).forEach(function (node) {
+      node.addEventListener("input", updateBookingSummary);
+      if (node.tagName === "SELECT") node.addEventListener("change", updateBookingSummary);
+    });
     el.loadAllGalleriesBtn.addEventListener("click", function () { loadAllConfiguredGalleries(true); });
     el.applyBackgroundBtn.addEventListener("click", applySelectedBackground);
     el.applyTeamLogoBtn.addEventListener("click", applySelectedTeamLogo);
@@ -160,6 +166,7 @@
     populateDemoEvents();
     if (!el.billingMode.value) el.billingMode.value = "cash";
     updatePaymentSummary();
+    updateBookingSummary();
   }
 
   function normalizeBranchValue(value) {
@@ -459,14 +466,17 @@
       endTime: el.endTime.value,
       unavailableDates: parseList(el.unavailableDates.value),
       preferredDates: parseList(el.preferredDates.value),
-      logoUrl: el.teamLogoUrl.value || state.selected.teamLogo || "",
-      participateInMatching: Boolean(el.participateInMatching.checked),
-      billingMode: normalizeBillingMode(el.billingMode.value),
-      paymentStatus: "pending",
-      paymentBreakdown: calculateTeamCost(el.category.value, state.pricingConfig, state.categoryPricing, el.billingMode.value),
-      preRegisteredId: state.editingTeamId ? (state.teams.find(function (item) { return item.id === state.editingTeamId; }) || {}).preRegisteredId || "" : (el.preRegisteredTeamSelect.value || ""),
-      ownerEmail: state.loggedUser.email,
-      createdAt: new Date().toISOString()
+        logoUrl: el.teamLogoUrl.value || state.selected.teamLogo || "",
+        participateInMatching: Boolean(el.participateInMatching.checked),
+        billingMode: normalizeBillingMode(el.billingMode.value),
+        paymentStatus: "pending",
+        paymentBreakdown: calculateTeamCost(el.category.value, state.pricingConfig, state.categoryPricing, el.billingMode.value),
+        bookingIntent: Boolean(el.bookingIntent && el.bookingIntent.checked),
+        bookingStatus: el.bookingIntent && el.bookingIntent.checked ? "pending" : "not-requested",
+        bookingSummary: buildBookingSummary(),
+        preRegisteredId: state.editingTeamId ? (state.teams.find(function (item) { return item.id === state.editingTeamId; }) || {}).preRegisteredId || "" : (el.preRegisteredTeamSelect.value || ""),
+        ownerEmail: state.loggedUser.email,
+        createdAt: new Date().toISOString()
     };
     if (!team.name || !team.branch || !team.category || !team.date) {
       showMessage("Completa los campos obligatorios", "error");
@@ -482,15 +492,17 @@
 
   function resetTeamForm() {
     el.teamForm.reset();
-    state.editingTeamId = "";
-    el.cancelEditBtn.classList.add("hidden");
-    setToday();
-    el.billingMode.value = "cash";
-    el.teamLogoUrl.value = "";
-    renderLogoPreview();
-    updatePaymentSummary();
-    renderPreRegisteredContext();
-  }
+      state.editingTeamId = "";
+      el.cancelEditBtn.classList.add("hidden");
+      setToday();
+      el.billingMode.value = "cash";
+      if (el.bookingIntent) el.bookingIntent.checked = false;
+      el.teamLogoUrl.value = "";
+      renderLogoPreview();
+      updatePaymentSummary();
+      updateBookingSummary();
+      renderPreRegisteredContext();
+    }
 
   function cancelEdit() {
     resetTeamForm();
@@ -508,16 +520,18 @@
     el.startTime.value = team.startTime;
     el.endTime.value = team.endTime;
     el.unavailableDates.value = team.unavailableDates.join(", ");
-    el.preferredDates.value = team.preferredDates.join(", ");
-    el.participateInMatching.checked = Boolean(team.participateInMatching);
-    el.billingMode.value = normalizeBillingMode(team.billingMode);
-    el.teamLogoUrl.value = team.logoUrl || "";
-    el.cancelEditBtn.classList.remove("hidden");
-    renderLogoPreview();
-    updatePaymentSummary();
-    renderPreRegisteredContext();
-    setView("registro");
-  }
+      el.preferredDates.value = team.preferredDates.join(", ");
+      el.participateInMatching.checked = Boolean(team.participateInMatching);
+      el.billingMode.value = normalizeBillingMode(team.billingMode);
+      if (el.bookingIntent) el.bookingIntent.checked = Boolean(team.bookingIntent);
+      el.teamLogoUrl.value = team.logoUrl || "";
+      el.cancelEditBtn.classList.remove("hidden");
+      renderLogoPreview();
+      updatePaymentSummary();
+      updateBookingSummary();
+      renderPreRegisteredContext();
+      setView("registro");
+    }
 
   function renderAll() {
     setView(state.view);
@@ -583,10 +597,11 @@
       el.startTime,
       el.endTime,
       el.unavailableDates,
-      el.preferredDates,
-      el.participateInMatching,
-      el.billingMode,
-      el.teamLogoUrl,
+        el.preferredDates,
+        el.participateInMatching,
+        el.billingMode,
+        el.bookingIntent,
+        el.teamLogoUrl,
       el.glassOpacityInput,
       el.enableCustomBackgroundInput,
       el.accentPresetSelect,
@@ -730,9 +745,9 @@
     const billingLabel = breakdown.billingMode === "invoice" ? "Facturado" : "Efectivo";
     const statusLabel = String(team.paymentStatus || "pending") === "pending" ? "Pendiente" : esc(String(team.paymentStatus || ""));
     if (compact) {
-      return "<span class='small-muted team-finance-inline'>Cobro: " + esc(billingLabel) + " · Total: " + esc(formatCurrency(breakdown.total)) + " · Estado: " + statusLabel + "</span>";
+      return "<span class='small-muted team-finance-inline'>Cobro: " + esc(billingLabel) + " · Total: " + esc(formatCurrency(breakdown.total)) + " · Estado: " + statusLabel + (team.bookingIntent ? " · Agendar" : "") + "</span>";
     }
-    return "<div class='team-finance-card'><div><span class='small-muted'>Modo</span><strong>" + esc(billingLabel) + "</strong></div><div><span class='small-muted'>Arbitrajes</span><strong>" + esc(String(breakdown.refereeGames)) + " × " + esc(formatCurrency(breakdown.refereeCost)) + "</strong></div><div><span class='small-muted'>Total</span><strong>" + esc(formatCurrency(breakdown.total)) + "</strong></div><div><span class='small-muted'>Estado</span><strong>" + statusLabel + "</strong></div></div>";
+    return "<div class='team-finance-card'><div><span class='small-muted'>Modo</span><strong>" + esc(billingLabel) + "</strong></div><div><span class='small-muted'>Arbitrajes</span><strong>" + esc(String(breakdown.refereeGames)) + " × " + esc(formatCurrency(breakdown.refereeCost)) + "</strong></div><div><span class='small-muted'>Total</span><strong>" + esc(formatCurrency(breakdown.total)) + "</strong></div><div><span class='small-muted'>Estado</span><strong>" + statusLabel + "</strong></div><div><span class='small-muted'>Agenda</span><strong>" + esc(team.bookingIntent ? "Pendiente" : "No solicitada") + "</strong></div></div>";
   }
 
   function renderOverlaps() {
@@ -1272,7 +1287,7 @@
     return (input || []).map(function (team) {
       const category = team.category || "Libre";
       const billingMode = normalizeBillingMode(team.billingMode);
-      return { id: team.id || createId("team"), name: team.name || "", branch: team.branch || "mixto", category: category, date: team.date || "", startTime: team.startTime || "00:00", endTime: team.endTime || "00:00", unavailableDates: parseList(team.unavailableDates || []), preferredDates: parseList(team.preferredDates || []), logoUrl: safeImageUrl(team.logoUrl || team.logo || ""), participateInMatching: team.participateInMatching !== false, billingMode: billingMode, paymentStatus: team.paymentStatus || "pending", paymentBreakdown: normalizePaymentBreakdown(team.paymentBreakdown || calculateTeamCost(category, state.pricingConfig, state.categoryPricing, billingMode)), preRegisteredId: String(team.preRegisteredId || "").trim(), ownerEmail: team.ownerEmail || "", createdAt: team.createdAt || new Date().toISOString() };
+      return { id: team.id || createId("team"), name: team.name || "", branch: team.branch || "mixto", category: category, date: team.date || "", startTime: team.startTime || "00:00", endTime: team.endTime || "00:00", unavailableDates: parseList(team.unavailableDates || []), preferredDates: parseList(team.preferredDates || []), logoUrl: safeImageUrl(team.logoUrl || team.logo || ""), participateInMatching: team.participateInMatching !== false, billingMode: billingMode, paymentStatus: team.paymentStatus || "pending", paymentBreakdown: normalizePaymentBreakdown(team.paymentBreakdown || calculateTeamCost(category, state.pricingConfig, state.categoryPricing, billingMode)), bookingIntent: Boolean(team.bookingIntent), bookingStatus: team.bookingStatus || (team.bookingIntent ? "pending" : "not-requested"), bookingSummary: normalizeBookingSummary(team.bookingSummary || {}), preRegisteredId: String(team.preRegisteredId || "").trim(), ownerEmail: team.ownerEmail || "", createdAt: team.createdAt || new Date().toISOString() };
     });
   }
 
@@ -1366,6 +1381,15 @@
     };
   }
 
+  function normalizeBookingConfig(input) {
+    return {
+      label: String(input.label || "Agendar"),
+      storeLabel: String(input.storeLabel || "Tienda DGD"),
+      storeUrl: String(input.storeUrl || "").trim(),
+      commitmentText: String(input.commitmentText || "Agendar confirma el compromiso de respetar ese horario de disponibilidad y continuar el proceso de pago fuera de esta app.")
+    };
+  }
+
   function normalizeCategoryPricing(input) {
     return (input || []).map(function (item) {
       return {
@@ -1392,6 +1416,19 @@
       billingMode: normalizeBillingMode(input.billingMode),
       category: String(input.category || "").trim(),
       foundCategory: Boolean(input.foundCategory)
+    };
+  }
+
+  function normalizeBookingSummary(input) {
+    return {
+      requestedAt: String(input.requestedAt || "").trim(),
+      teamName: String(input.teamName || "").trim(),
+      category: String(input.category || "").trim(),
+      date: String(input.date || "").trim(),
+      startTime: String(input.startTime || "").trim(),
+      endTime: String(input.endTime || "").trim(),
+      storeUrl: String(input.storeUrl || "").trim(),
+      commitmentText: String(input.commitmentText || "").trim()
     };
   }
 
@@ -1426,11 +1463,13 @@
     const category = String(el.category.value || "").trim();
     if (!category) {
       el.paymentSummaryBox.innerHTML = "Selecciona una categoría para calcular el costo del equipo.";
+      updateBookingSummary();
       return;
     }
     const breakdown = calculateTeamCost(category, state.pricingConfig, state.categoryPricing, el.billingMode.value);
     if (!breakdown.foundCategory) {
       el.paymentSummaryBox.innerHTML = "La categoría seleccionada aún no tiene costo configurado para este evento.";
+      updateBookingSummary();
       return;
     }
     const billingLabel = breakdown.billingMode === "invoice" ? "Facturado" : "Efectivo";
@@ -1442,6 +1481,45 @@
       "Arbitrajes por adelantado: " + esc(String(breakdown.refereeGames)) + "<br>" +
       "Total arbitrajes: " + esc(formatCurrency(breakdown.refereeTotal)) +
       "<strong>Total: " + esc(formatCurrency(breakdown.total)) + "</strong>";
+    updateBookingSummary();
+  }
+
+  function buildBookingSummary() {
+    return normalizeBookingSummary({
+      requestedAt: new Date().toISOString(),
+      teamName: String(el.teamName && el.teamName.value || "").trim(),
+      category: String(el.category && el.category.value || "").trim(),
+      date: String(el.date && el.date.value || "").trim(),
+      startTime: String(el.startTime && el.startTime.value || "").trim(),
+      endTime: String(el.endTime && el.endTime.value || "").trim(),
+      storeUrl: state.bookingConfig.storeUrl,
+      commitmentText: state.bookingConfig.commitmentText
+    });
+  }
+
+  function updateBookingSummary() {
+    if (!el.bookingSummaryBox || !el.bookingStoreLink || !el.bookingIntent) return;
+    const wantsBooking = Boolean(el.bookingIntent.checked);
+    const hasRequiredSlot = Boolean(String(el.category.value || "").trim() && String(el.date.value || "").trim() && String(el.startTime.value || "").trim() && String(el.endTime.value || "").trim());
+    const teamName = String(el.teamName.value || "").trim() || "este equipo";
+    if (!wantsBooking) {
+      el.bookingSummaryBox.innerHTML = "Marca esta opción para registrar el compromiso de agenda de este horario.";
+    } else if (!hasRequiredSlot) {
+      el.bookingSummaryBox.innerHTML = "Completa categoría, fecha y horario para dejar listo el compromiso de agenda.";
+    } else {
+      el.bookingSummaryBox.innerHTML =
+        "<div><strong>" + esc(state.bookingConfig.label) + " activado</strong></div>" +
+        "<div>" + esc(teamName) + " quedará marcado para agendar el horario del " + formatHumanDate(el.date.value) + " de " + el.startTime.value + " a " + el.endTime.value + ".</div>" +
+        "<div class='small-muted'>" + esc(state.bookingConfig.commitmentText) + "</div>";
+    }
+    if (state.bookingConfig.storeUrl) {
+      el.bookingStoreLink.href = state.bookingConfig.storeUrl;
+      el.bookingStoreLink.textContent = "Ir a " + state.bookingConfig.storeLabel;
+      el.bookingStoreLink.classList.remove("hidden");
+    } else {
+      el.bookingStoreLink.classList.add("hidden");
+      el.bookingStoreLink.removeAttribute("href");
+    }
   }
 
   function buildCategoryCatalog() {
