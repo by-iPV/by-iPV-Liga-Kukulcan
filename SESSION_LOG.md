@@ -830,3 +830,13 @@ Uso:
     - sin esos datos, el flujo actual se mantiene intacto
   - verificacion:
     - `node --check app.js`
+- Actividad 12 concluida: `Vinculacion de logos con preinscritos`
+  - la resolucion de logo ahora prioriza el vinculo formal con `preRegisteredTeams` antes que aliases o inferencias visuales
+  - si un equipo tiene `preRegisteredId` con logo, ese logo gana como fuente mas confiable
+  - si no hay `preRegisteredId`, se acepta tambien un match exacto y unico por nombre dentro de `preRegisteredTeams`
+  - esto reduce riesgo de logos cruzados cuando el equipo ya esta formalmente identificado por pre-registro
+  - nota de alcance:
+    - la mejora se activa en cuanto existan datos reales de `Equipos_Inscritos` con logo vinculado
+    - sin esos datos, la app sigue usando la capa actual de logos demo / galeria / fallback iPV
+  - verificacion:
+    - `node --check app.js`

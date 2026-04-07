@@ -638,7 +638,7 @@
       return;
     }
     el.teamsTableBody.innerHTML = state.teams.map(function (team) {
-      const logo = "<img class='table-logo' src='" + esc(getTeamLogoUrl(team.name, team.logoUrl)) + "' alt='" + esc(team.name) + "' onerror=\"this.src='" + IPV_LOGO + "'\">";
+      const logo = "<img class='table-logo' src='" + esc(getTeamLogoUrl(team.name, team.logoUrl, team.preRegisteredId)) + "' alt='" + esc(team.name) + "' onerror=\"this.src='" + IPV_LOGO + "'\">";
       const edit = canEditTeam(team) ? "<button type='button' class='btn btn-ghost btn-small edit-team' data-id='" + esc(team.id) + "'>Editar</button>" : "<span class='small-muted'>Solo lectura</span>";
       const finance = getTeamFinanceSummaryMarkup(team, true);
       return "<tr><td><strong>" + esc(team.name) + "</strong><span class='small-muted'>" + esc(team.participateInMatching ? "Participa en matching" : "Registro manual") + "</span>" + finance + "</td><td>" + esc(team.branch) + "</td><td>" + esc(team.category) + "</td><td>" + esc(formatHumanDate(team.date)) + "</td><td>" + esc(team.startTime + " - " + team.endTime) + "</td><td>" + logo + "</td><td>" + edit + "</td></tr>";
@@ -654,7 +654,7 @@
       return;
     }
     el.viewEquiposList.innerHTML = state.teams.map(function (team) {
-      const logo = "<img class='team-card-logo' src='" + esc(getTeamLogoUrl(team.name, team.logoUrl)) + "' alt='" + esc(team.name) + "' onerror=\"this.src='" + IPV_LOGO + "'\">";
+      const logo = "<img class='team-card-logo' src='" + esc(getTeamLogoUrl(team.name, team.logoUrl, team.preRegisteredId)) + "' alt='" + esc(team.name) + "' onerror=\"this.src='" + IPV_LOGO + "'\">";
       const finance = getTeamFinanceSummaryMarkup(team, false);
       return "<article class='team-card'><div class='team-card-head'><div><h3>" + esc(team.name) + "</h3><p class='muted'>" + esc(team.branch + " · " + team.category) + "</p></div><div class='team-card-logo-wrap'>" + logo + "</div></div><div class='small-muted'>" + esc(formatHumanDate(team.date) + " · " + team.startTime + " - " + team.endTime) + "</div>" + finance + "</article>";
     }).join("");
@@ -741,7 +741,7 @@
     const venueHtml = venueLink ? "<a class='match-link' href='" + esc(venueLink) + "' target='_blank' rel='noopener noreferrer'>" + esc(venueValue) + "</a>" : esc(venueValue);
     const alternatives = renderAlternatives(selected.alternatives);
     const detailAction = isLogged ? "<label class='match-detail-actions'><input type='checkbox' class='accept-match-detail' data-id='" + esc(selected.id) + "' " + (accepted ? "checked" : "") + "><span>Aceptar este partido</span></label>" : "";
-    el.viewPartidosList.innerHTML = "<article class='match-card match-detail-card'><div class='match-detail-header'><div class='match-date-badge'><span class='match-date-day'>" + esc(badge.day) + "</span><span class='match-date-month'>" + esc(badge.month) + "</span></div><div class='match-detail-team'>" + renderMatchLogo(selected.teamA.logoUrl, selected.teamA.name) + "<strong>" + esc(selected.teamA.name) + "</strong></div><div class='match-detail-vs'>VS</div><div class='match-detail-team'>" + renderMatchLogo(selected.teamB.logoUrl, selected.teamB.name) + "<strong>" + esc(selected.teamB.name) + "</strong></div><div class='match-detail-side'><span class='match-detail-label'>Estado</span><span class='tag'>" + esc(accepted ? "Aceptado" : "Pendiente") + "</span></div></div><div class='match-detail-grid'><div class='match-detail-block'><span class='match-detail-label'>Partido sugerido</span><span class='match-detail-value'>" + esc(selected.teamA.name) + "</span></div><div class='match-detail-block'><span class='match-detail-label'>Rival</span><span class='match-detail-value'>" + esc(selected.teamB.name) + "</span></div><div class='match-detail-block'><span class='match-detail-label'>Fecha</span><span class='match-detail-value'>" + esc(formatHumanDate(selected.date) + " · " + selected.startTime + " - " + selected.endTime) + "</span></div><div class='match-detail-block'><span class='match-detail-label'>Sede</span><span class='match-detail-value'>" + venueHtml + "</span></div></div><div class='match-detail-block'><span class='match-detail-label'>Categoría del cruce</span><span class='match-detail-value'>" + esc(selected.branch + " · " + selected.category + (selected.group ? " · " + selected.group : "")) + "</span></div><div class='match-detail-footer'><div><span class='match-detail-label'>Alternativas</span><div class='match-alt-list'>" + (alternatives || "<span class='small-muted'>Sin alternativas disponibles.</span>") + "</div></div>" + detailAction + "</div></article>";
+    el.viewPartidosList.innerHTML = "<article class='match-card match-detail-card'><div class='match-detail-header'><div class='match-date-badge'><span class='match-date-day'>" + esc(badge.day) + "</span><span class='match-date-month'>" + esc(badge.month) + "</span></div><div class='match-detail-team'>" + renderMatchLogo(selected.teamA.logoUrl, selected.teamA.name, selected.teamA.preRegisteredId) + "<strong>" + esc(selected.teamA.name) + "</strong></div><div class='match-detail-vs'>VS</div><div class='match-detail-team'>" + renderMatchLogo(selected.teamB.logoUrl, selected.teamB.name, selected.teamB.preRegisteredId) + "<strong>" + esc(selected.teamB.name) + "</strong></div><div class='match-detail-side'><span class='match-detail-label'>Estado</span><span class='tag'>" + esc(accepted ? "Aceptado" : "Pendiente") + "</span></div></div><div class='match-detail-grid'><div class='match-detail-block'><span class='match-detail-label'>Partido sugerido</span><span class='match-detail-value'>" + esc(selected.teamA.name) + "</span></div><div class='match-detail-block'><span class='match-detail-label'>Rival</span><span class='match-detail-value'>" + esc(selected.teamB.name) + "</span></div><div class='match-detail-block'><span class='match-detail-label'>Fecha</span><span class='match-detail-value'>" + esc(formatHumanDate(selected.date) + " · " + selected.startTime + " - " + selected.endTime) + "</span></div><div class='match-detail-block'><span class='match-detail-label'>Sede</span><span class='match-detail-value'>" + venueHtml + "</span></div></div><div class='match-detail-block'><span class='match-detail-label'>Categoría del cruce</span><span class='match-detail-value'>" + esc(selected.branch + " · " + selected.category + (selected.group ? " · " + selected.group : "")) + "</span></div><div class='match-detail-footer'><div><span class='match-detail-label'>Alternativas</span><div class='match-alt-list'>" + (alternatives || "<span class='small-muted'>Sin alternativas disponibles.</span>") + "</div></div>" + detailAction + "</div></article>";
     const detailCheckbox = el.viewPartidosList.querySelector(".accept-match-detail");
     if (detailCheckbox) {
       detailCheckbox.addEventListener("change", function () {
@@ -762,7 +762,7 @@
   }
 
   function renderTeamLogos() {
-    const urls = state.teams.map(function (team) { return getTeamLogoUrl(team.name, team.logoUrl); }).filter(Boolean);
+    const urls = state.teams.map(function (team) { return getTeamLogoUrl(team.name, team.logoUrl, team.preRegisteredId); }).filter(Boolean);
     if (!urls.length) {
       el.headerTeamLogos.innerHTML = "<div class='empty-inline'>Sin logos registrados.</div>";
       return;
@@ -1132,8 +1132,8 @@
     return (state.settings.dynamic && state.settings.dynamic[key]) || "";
   }
 
-  function renderMatchLogo(url, name) {
-    return "<div class='match-team-logo'><img src='" + esc(getTeamLogoUrl(name, url)) + "' alt='" + esc(name) + "' onerror=\"this.src='" + IPV_LOGO + "'\"></div>";
+  function renderMatchLogo(url, name, preRegisteredId) {
+    return "<div class='match-team-logo'><img src='" + esc(getTeamLogoUrl(name, url, preRegisteredId)) + "' alt='" + esc(name) + "' onerror=\"this.src='" + IPV_LOGO + "'\"></div>";
   }
 
   function emptyGallery(text) { return "<div class='empty-shell'>" + esc(text || "No hay imágenes disponibles en la carpeta") + "</div>"; }
@@ -1537,12 +1537,26 @@
     return String(input || "").split(",").map(splitBlockedDate).filter(function (item) { return item.date; });
   }
 
-  function getTeamLogoUrl(teamName, explicitUrl) {
+  function getTeamLogoUrl(teamName, explicitUrl, preRegisteredId) {
+    const preRegistered = getPreRegisteredLogoUrl(teamName, preRegisteredId);
+    if (preRegistered) return preRegistered;
     const inferred = inferTeamLogoFromGallery(teamName);
     if (inferred) return inferred;
     const direct = safeImageUrl(explicitUrl || "");
     if (shouldUseExplicitTeamLogo(teamName, direct)) return direct;
     return IPV_LOGO;
+  }
+
+  function getPreRegisteredLogoUrl(teamName, preRegisteredId) {
+    const direct = state.preRegisteredTeams.find(function (item) {
+      return preRegisteredId && item.id === preRegisteredId && item.logoUrl;
+    });
+    if (direct && direct.logoUrl) return direct.logoUrl;
+    const normalizedTeam = normalizeLoose(teamName);
+    const exactMatches = state.preRegisteredTeams.filter(function (item) {
+      return item.logoUrl && normalizeLoose(item.teamName) === normalizedTeam;
+    });
+    return exactMatches.length === 1 ? exactMatches[0].logoUrl : "";
   }
 
   function inferTeamLogoFromGallery(teamName) {
@@ -1576,12 +1590,12 @@
 
   function applyLogoFallbacksFromGallery() {
     state.teams = state.teams.map(function (team) {
-      return Object.assign({}, team, { logoUrl: getTeamLogoUrl(team.name, team.logoUrl) });
+      return Object.assign({}, team, { logoUrl: getTeamLogoUrl(team.name, team.logoUrl, team.preRegisteredId) });
     });
     state.matches = state.matches.map(function (match) {
       return Object.assign({}, match, {
-        teamA: Object.assign({}, match.teamA || {}, { logoUrl: getTeamLogoUrl(match.teamA && match.teamA.name, match.teamA && match.teamA.logoUrl) }),
-        teamB: Object.assign({}, match.teamB || {}, { logoUrl: getTeamLogoUrl(match.teamB && match.teamB.name, match.teamB && match.teamB.logoUrl) })
+        teamA: Object.assign({}, match.teamA || {}, { logoUrl: getTeamLogoUrl(match.teamA && match.teamA.name, match.teamA && match.teamA.logoUrl, match.teamA && match.teamA.preRegisteredId) }),
+        teamB: Object.assign({}, match.teamB || {}, { logoUrl: getTeamLogoUrl(match.teamB && match.teamB.name, match.teamB && match.teamB.logoUrl, match.teamB && match.teamB.preRegisteredId) })
       });
     });
   }
