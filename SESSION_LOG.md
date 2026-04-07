@@ -798,3 +798,23 @@ Uso:
     - por estabilidad, se dejo preparada la compatibilidad de lectura / snapshot sin forzar una escritura remota inexistente
   - verificacion:
     - `node --check app.js`
+- Actividad 10 concluida: `Clasificacion por grupos`
+  - se agrego soporte estructural para `standings` por evento demo
+  - la UI ahora muestra una tabla por grupos cuando el evento activo tiene clasificacion disponible
+  - se cargo un primer caso real de `CIVOLSUR` con clasificacion por grupos para `Juv Menor 2009-10 Fem`
+  - la tabla muestra:
+    - `JJ`
+    - `JG`
+    - `JP`
+    - `S.F`
+    - `S.C`
+    - `PF`
+    - `PC`
+    - `% Pnts`
+    - `% Sets`
+  - nota de alcance:
+    - esta primera entrega usa el bloque confirmado ya consolidado
+    - quedan listas mas categorias / grupos para agregarse conforme se termine de consolidar el resto del dataset externo
+  - verificacion:
+    - `node --check app.js`
+    - `node --check config.js`

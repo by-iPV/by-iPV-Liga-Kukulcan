@@ -633,6 +633,52 @@ window.APP_CONFIG = {
             { rank: 3, team: "MEDUSAS TABASCO" }
           ]
         }
+      ],
+      standings: [
+        {
+          category: "Juv Menor 2009-10 Fem",
+          group: "Grupo A",
+          rows: [
+            { team: "LEGLISE JULIO", jj: 4, jg: 4, jp: 0, sf: 8, sc: 1, pf: 213, pc: 144, pctPoints: "1,479", pctSets: "88,9" },
+            { team: "SAN FRANCISCO", jj: 4, jg: 3, jp: 1, sf: 7, sc: 3, pf: 210, pc: 190, pctPoints: "1,105", pctSets: "70,0" },
+            { team: "MONKEYS CANCUN", jj: 4, jg: 2, jp: 2, sf: 5, sc: 4, pf: 190, pc: 152, pctPoints: "1,250", pctSets: "55,6" },
+            { team: "CLUB FININI", jj: 4, jg: 1, jp: 3, sf: 2, sc: 7, pf: 167, pc: 199, pctPoints: "0,839", pctSets: "22,2" },
+            { team: "ALLSTAR", jj: 4, jg: 0, jp: 4, sf: 1, sc: 8, pf: 130, pc: 225, pctPoints: "0,578", pctSets: "11,1" }
+          ]
+        },
+        {
+          category: "Juv Menor 2009-10 Fem",
+          group: "Grupo B",
+          rows: [
+            { team: "LEGLISE ALE", jj: 4, jg: 4, jp: 0, sf: 8, sc: 0, pf: 200, pc: 121, pctPoints: "1,653", pctSets: "100,0" },
+            { team: "LECHUZAS COZUMEL", jj: 4, jg: 3, jp: 1, sf: 6, sc: 4, pf: 206, pc: 203, pctPoints: "1,015", pctSets: "60,0" },
+            { team: "RINOS", jj: 4, jg: 2, jp: 2, sf: 4, sc: 5, pf: 183, pc: 185, pctPoints: "0,989", pctSets: "44,4" },
+            { team: "ALBATROS", jj: 4, jg: 1, jp: 3, sf: 4, sc: 6, pf: 203, pc: 198, pctPoints: "1,025", pctSets: "40,0" },
+            { team: "CENTINELAS", jj: 4, jg: 0, jp: 4, sf: 1, sc: 8, pf: 129, pc: 214, pctPoints: "0,603", pctSets: "11,1" }
+          ]
+        },
+        {
+          category: "Juv Menor 2009-10 Fem",
+          group: "Grupo C",
+          rows: [
+            { team: "CUERVITAS", jj: 4, jg: 4, jp: 0, sf: 8, sc: 1, pf: 215, pc: 133, pctPoints: "1,617", pctSets: "88,9" },
+            { team: "PROGRESO", jj: 4, jg: 3, jp: 1, sf: 7, sc: 4, pf: 223, pc: 219, pctPoints: "1,018", pctSets: "63,6" },
+            { team: "YUCATECOS ISAI", jj: 4, jg: 2, jp: 2, sf: 5, sc: 6, pf: 183, pc: 225, pctPoints: "0,813", pctSets: "45,5" },
+            { team: "FENIX QROO", jj: 4, jg: 1, jp: 3, sf: 4, sc: 7, pf: 202, pc: 233, pctPoints: "0,867", pctSets: "36,4" },
+            { team: "COLIBRIS CALKINI", jj: 4, jg: 0, jp: 4, sf: 2, sc: 8, pf: 196, pc: 209, pctPoints: "0,938", pctSets: "20,0" }
+          ]
+        },
+        {
+          category: "Juv Menor 2009-10 Fem",
+          group: "Grupo D",
+          rows: [
+            { team: "GACELAS", jj: 4, jg: 4, jp: 0, sf: 8, sc: 0, pf: 200, pc: 103, pctPoints: "1,942", pctSets: "100,0" },
+            { team: "JUPLAV", jj: 4, jg: 3, jp: 1, sf: 6, sc: 3, pf: 192, pc: 149, pctPoints: "1,289", pctSets: "66,7" },
+            { team: "DELFINES 2008", jj: 4, jg: 2, jp: 2, sf: 4, sc: 5, pf: 169, pc: 191, pctPoints: "0,885", pctSets: "44,4" },
+            { team: "GUERRERAS", jj: 4, jg: 1, jp: 3, sf: 4, sc: 6, pf: 178, pc: 194, pctPoints: "0,918", pctSets: "40,0" },
+            { team: "DEPORTIVO DEL PARQUE", jj: 4, jg: 0, jp: 4, sf: 0, sc: 8, pf: 98, pc: 200, pctPoints: "0,490", pctSets: "0,0" }
+          ]
+        }
       ]
     },
     {

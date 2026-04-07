@@ -90,7 +90,7 @@
   }
 
   function cacheElements() {
-    ["appBackground","sidebar","sidebarToggle","loginToggle","loginDropdown","authStatus","googleLoginButton","userSession","userName","userEmail","logoutBtn","backendBadge","backendHint","teamCount","overlapCount","matchCount","sponsorsCarousel","headerTeamLogos","heroLoginBtn","teamForm","teamName","branch","category","date","startTime","endTime","unavailableDates","preferredDates","participateInMatching","billingMode","paymentSummaryBox","teamLogoUrl","teamLogoPreview","saveTeamBtn","cancelEditBtn","messageBox","teamsTableBody","overlapsList","matchesList","viewEquiposList","viewPartidosList","eventPodiumBox","eventPodiumStatus","eventPodiumList","visualConfigSection","backgroundSection","logosSection","sponsorsSection","backgroundFolderIdInput","logosFolderIdInput","sponsorsFolderIdInput","glassOpacityInput","enableCustomBackgroundInput","accentPresetSelect","accentExpandCardsInput","loadAllGalleriesBtn","saveVisualSettingsBtn","applyBackgroundBtn","applyTeamLogoBtn","reloadBackgroundGalleryBtn","reloadLogosGalleryBtn","reloadSponsorsGalleryBtn","backgroundGalleryStatus","backgroundGallery","logosGalleryStatus","logosGallery","sponsorsGalleryStatus","sponsorsGallery","adminForm","adminStartDate","adminEndDate","blockedDates","blockedDateInput","blockedReasonInput","matchingMode","groupCount","manualMatchingEnabled","addBlockedDateBtn","addRangeBtn","userBlockedView","blockedDatesReadable","generateMatchesBtn","saveMatchesBtn","acceptAllMatches","resetDemoBtn","demoEventSelect","teamFormDescription","viewBracketBtn"].forEach(function (id) {
+    ["appBackground","sidebar","sidebarToggle","loginToggle","loginDropdown","authStatus","googleLoginButton","userSession","userName","userEmail","logoutBtn","backendBadge","backendHint","teamCount","overlapCount","matchCount","sponsorsCarousel","headerTeamLogos","heroLoginBtn","teamForm","teamName","branch","category","date","startTime","endTime","unavailableDates","preferredDates","participateInMatching","billingMode","paymentSummaryBox","teamLogoUrl","teamLogoPreview","saveTeamBtn","cancelEditBtn","messageBox","teamsTableBody","overlapsList","matchesList","viewEquiposList","viewPartidosList","eventPodiumBox","eventPodiumStatus","eventPodiumList","eventStandingsBox","eventStandingsStatus","eventStandingsList","visualConfigSection","backgroundSection","logosSection","sponsorsSection","backgroundFolderIdInput","logosFolderIdInput","sponsorsFolderIdInput","glassOpacityInput","enableCustomBackgroundInput","accentPresetSelect","accentExpandCardsInput","loadAllGalleriesBtn","saveVisualSettingsBtn","applyBackgroundBtn","applyTeamLogoBtn","reloadBackgroundGalleryBtn","reloadLogosGalleryBtn","reloadSponsorsGalleryBtn","backgroundGalleryStatus","backgroundGallery","logosGalleryStatus","logosGallery","sponsorsGalleryStatus","sponsorsGallery","adminForm","adminStartDate","adminEndDate","blockedDates","blockedDateInput","blockedReasonInput","matchingMode","groupCount","manualMatchingEnabled","addBlockedDateBtn","addRangeBtn","userBlockedView","blockedDatesReadable","generateMatchesBtn","saveMatchesBtn","acceptAllMatches","resetDemoBtn","demoEventSelect","teamFormDescription","viewBracketBtn"].forEach(function (id) {
       el[id] = document.getElementById(id);
     });
     el.navItems = Array.from(document.querySelectorAll(".nav-item"));
@@ -1106,6 +1106,7 @@
         classificationUrl: String(item.classificationUrl || "").trim(),
         scoreSheetUrl: String(item.scoreSheetUrl || "").trim(),
         podiums: normalizeEventPodiums(item.podiums || []),
+        standings: normalizeEventStandings(item.standings || []),
         adminConfig: item.adminConfig || null
       };
     }).filter(function (item) { return item.id; });
@@ -1123,6 +1124,29 @@
         }).filter(function (place) { return place.rank > 0 && place.team; })
       };
     }).filter(function (item) { return item.category && item.places.length; });
+  }
+
+  function normalizeEventStandings(input) {
+    return (input || []).map(function (item) {
+      return {
+        category: String(item.category || "").trim(),
+        group: String(item.group || "").trim(),
+        rows: (item.rows || []).map(function (row) {
+          return {
+            team: String(row.team || "").trim(),
+            jj: Number(row.jj || 0),
+            jg: Number(row.jg || 0),
+            jp: Number(row.jp || 0),
+            sf: Number(row.sf || 0),
+            sc: Number(row.sc || 0),
+            pf: Number(row.pf || 0),
+            pc: Number(row.pc || 0),
+            pctPoints: String(row.pctPoints || "").trim(),
+            pctSets: String(row.pctSets || "").trim()
+          };
+        }).filter(function (row) { return row.team; })
+      };
+    }).filter(function (item) { return item.category && item.group && item.rows.length; });
   }
 
   function normalizeMatches(input) {
@@ -1258,6 +1282,7 @@
       el.viewBracketBtn.href = hasBracket ? selected.bracketUrl : "#";
     }
     renderEventPodiums(selected);
+    renderEventStandings(selected);
   }
 
   function renderEventPodiums(selected) {
@@ -1280,6 +1305,60 @@
                 </div>
               `;
             }).join("")}
+          </div>
+        </article>
+      `;
+    }).join("") : "";
+  }
+
+  function renderEventStandings(selected) {
+    if (!el.eventStandingsBox || !el.eventStandingsStatus || !el.eventStandingsList) return;
+    const standings = selected && Array.isArray(selected.standings) ? selected.standings : [];
+    const hasStandings = standings.length > 0;
+    el.eventStandingsBox.classList.toggle("hidden", !hasStandings);
+    el.eventStandingsStatus.textContent = hasStandings ? "Clasificacion parcial o consolidada del evento demo activo." : "Sin clasificación disponible para este evento.";
+    el.eventStandingsList.innerHTML = hasStandings ? standings.map(function (standing) {
+      return `
+        <article class="standings-card">
+          <div>
+            <h4>${escapeHtml(standing.category)}</h4>
+            <h5 class="muted">${escapeHtml(standing.group)}</h5>
+          </div>
+          <div class="standings-table-wrap">
+            <table class="standings-table">
+              <thead>
+                <tr>
+                  <th>Equipo</th>
+                  <th>JJ</th>
+                  <th>JG</th>
+                  <th>JP</th>
+                  <th>S.F</th>
+                  <th>S.C</th>
+                  <th>PF</th>
+                  <th>PC</th>
+                  <th>% Pnts</th>
+                  <th>% Sets</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${standing.rows.map(function (row) {
+                  return `
+                    <tr>
+                      <td>${escapeHtml(row.team)}</td>
+                      <td>${row.jj}</td>
+                      <td>${row.jg}</td>
+                      <td>${row.jp}</td>
+                      <td>${row.sf}</td>
+                      <td>${row.sc}</td>
+                      <td>${row.pf}</td>
+                      <td>${row.pc}</td>
+                      <td>${escapeHtml(row.pctPoints)}</td>
+                      <td>${escapeHtml(row.pctSets)}</td>
+                    </tr>
+                  `;
+                }).join("")}
+              </tbody>
+            </table>
           </div>
         </article>
       `;
