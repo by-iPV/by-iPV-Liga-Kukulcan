@@ -743,3 +743,10 @@ Uso:
   - verificacion:
     - `node --check app.js`
     - `node --check config.js`
+- Actividad 5 concluida: `Ver Cuadro de Competencia`
+  - se agrego un boton visible en la zona de acciones demo para abrir el bracket del evento actual
+  - la opcion solo se habilita cuando el evento demo seleccionado tiene disponible `bracketUrl`
+  - los eventos sin bracket no muestran la accion, evitando ruido o enlaces vacios
+  - la implementacion reutiliza el contexto ya preparado por el selector de eventos demo y por los recursos externos del evento
+  - verificacion:
+    - `node --check app.js`
