@@ -840,3 +840,13 @@ Uso:
     - sin esos datos, la app sigue usando la capa actual de logos demo / galeria / fallback iPV
   - verificacion:
     - `node --check app.js`
+- Actividad 13 concluida: `Modo solo lectura desconectado`
+  - cuando no hay sesion activa, la app entra en modo `solo lectura`
+  - en ese estado:
+    - se bloquean inputs de registro y configuracion
+    - se ocultan acciones de edicion / carga / guardado / generacion
+    - se conserva la navegacion, la consulta de equipos, partidos, sponsors y contexto del evento
+  - `Cargar demo` y el selector de evento demo se conservan disponibles para exploracion
+  - la UI muestra un mensaje claro de `Modo solo lectura`
+  - verificacion:
+    - `node --check app.js`

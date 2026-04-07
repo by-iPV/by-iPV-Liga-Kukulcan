@@ -525,6 +525,7 @@
     renderDemoEventContext();
     renderConnectedVisibility();
     renderPreRegisteredContext();
+    renderReadOnlyDisconnected();
     renderStats();
     renderLogoPreview();
     renderTeamsTable();
@@ -569,6 +570,67 @@
     el.participateInMatching.closest("label").classList.toggle("hidden", !isLogged);
     if (!isLogged && state.editingTeamId) {
       state.editingTeamId = "";
+    }
+  }
+
+  function renderReadOnlyDisconnected() {
+    const isLogged = Boolean(state.loggedUser && state.loggedUser.email);
+    const lock = !isLogged;
+    [
+      el.teamName,
+      el.branch,
+      el.category,
+      el.date,
+      el.startTime,
+      el.endTime,
+      el.unavailableDates,
+      el.preferredDates,
+      el.participateInMatching,
+      el.billingMode,
+      el.teamLogoUrl,
+      el.glassOpacityInput,
+      el.enableCustomBackgroundInput,
+      el.accentPresetSelect,
+      el.accentExpandCardsInput,
+      el.backgroundFolderIdInput,
+      el.logosFolderIdInput,
+      el.sponsorsFolderIdInput,
+      el.adminStartDate,
+      el.adminEndDate,
+      el.blockedDates,
+      el.blockedDateInput,
+      el.blockedReasonInput,
+      el.matchingMode,
+      el.groupCount,
+      el.manualMatchingEnabled
+    ].filter(Boolean).forEach(function (node) {
+      node.disabled = lock;
+      if ("readOnly" in node && (node.tagName === "INPUT" || node.tagName === "TEXTAREA")) {
+        node.readOnly = lock;
+      }
+    });
+    [
+      el.loadAllGalleriesBtn,
+      el.applyBackgroundBtn,
+      el.applyTeamLogoBtn,
+      el.reloadBackgroundGalleryBtn,
+      el.reloadLogosGalleryBtn,
+      el.reloadSponsorsGalleryBtn,
+      el.generateMatchesBtn,
+      el.saveMatchesBtn,
+      el.addBlockedDateBtn,
+      el.addRangeBtn
+    ].filter(Boolean).forEach(function (node) {
+      node.classList.toggle("hidden", lock);
+      node.disabled = lock;
+    });
+    if (el.acceptAllMatches) {
+      el.acceptAllMatches.disabled = lock;
+      const container = el.acceptAllMatches.closest(".accept-all");
+      if (container) container.classList.toggle("hidden", lock);
+    }
+    if (el.messageBox) {
+      el.messageBox.textContent = lock ? "Modo solo lectura. Inicia sesión con Google para editar o guardar." : "";
     }
   }
 
