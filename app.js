@@ -559,7 +559,8 @@
     el.teamsTableBody.innerHTML = state.teams.map(function (team) {
       const logo = "<img class='table-logo' src='" + esc(getTeamLogoUrl(team.name, team.logoUrl)) + "' alt='" + esc(team.name) + "' onerror=\"this.src='" + IPV_LOGO + "'\">";
       const edit = canEditTeam(team) ? "<button type='button' class='btn btn-ghost btn-small edit-team' data-id='" + esc(team.id) + "'>Editar</button>" : "<span class='small-muted'>Solo lectura</span>";
-      return "<tr><td><strong>" + esc(team.name) + "</strong><span class='small-muted'>" + esc(team.participateInMatching ? "Participa en matching" : "Registro manual") + "</span></td><td>" + esc(team.branch) + "</td><td>" + esc(team.category) + "</td><td>" + esc(formatHumanDate(team.date)) + "</td><td>" + esc(team.startTime + " - " + team.endTime) + "</td><td>" + logo + "</td><td>" + edit + "</td></tr>";
+      const finance = getTeamFinanceSummaryMarkup(team, true);
+      return "<tr><td><strong>" + esc(team.name) + "</strong><span class='small-muted'>" + esc(team.participateInMatching ? "Participa en matching" : "Registro manual") + "</span>" + finance + "</td><td>" + esc(team.branch) + "</td><td>" + esc(team.category) + "</td><td>" + esc(formatHumanDate(team.date)) + "</td><td>" + esc(team.startTime + " - " + team.endTime) + "</td><td>" + logo + "</td><td>" + edit + "</td></tr>";
     }).join("");
     el.teamsTableBody.querySelectorAll(".edit-team").forEach(function (button) {
       button.addEventListener("click", function () { startEdit(button.dataset.id); });
@@ -573,8 +574,24 @@
     }
     el.viewEquiposList.innerHTML = state.teams.map(function (team) {
       const logo = "<img class='team-card-logo' src='" + esc(getTeamLogoUrl(team.name, team.logoUrl)) + "' alt='" + esc(team.name) + "' onerror=\"this.src='" + IPV_LOGO + "'\">";
-      return "<article class='team-card'><div class='team-card-head'><div><h3>" + esc(team.name) + "</h3><p class='muted'>" + esc(team.branch + " · " + team.category) + "</p></div><div class='team-card-logo-wrap'>" + logo + "</div></div><div class='small-muted'>" + esc(formatHumanDate(team.date) + " · " + team.startTime + " - " + team.endTime) + "</div></article>";
+      const finance = getTeamFinanceSummaryMarkup(team, false);
+      return "<article class='team-card'><div class='team-card-head'><div><h3>" + esc(team.name) + "</h3><p class='muted'>" + esc(team.branch + " · " + team.category) + "</p></div><div class='team-card-logo-wrap'>" + logo + "</div></div><div class='small-muted'>" + esc(formatHumanDate(team.date) + " · " + team.startTime + " - " + team.endTime) + "</div>" + finance + "</article>";
     }).join("");
+  }
+
+  function getTeamFinanceSummaryMarkup(team, compact) {
+    const breakdown = normalizePaymentBreakdown(team.paymentBreakdown || calculateTeamCost(team.category, state.pricingConfig, state.categoryPricing, team.billingMode));
+    if (!breakdown.foundCategory) {
+      return compact
+        ? "<span class='small-muted team-finance-inline'>Costo no configurado</span>"
+        : "<div class='team-finance-card'><span class='small-muted'>Costo no configurado para esta categoría.</span></div>";
+    }
+    const billingLabel = breakdown.billingMode === "invoice" ? "Facturado" : "Efectivo";
+    const statusLabel = String(team.paymentStatus || "pending") === "pending" ? "Pendiente" : esc(String(team.paymentStatus || ""));
+    if (compact) {
+      return "<span class='small-muted team-finance-inline'>Cobro: " + esc(billingLabel) + " · Total: " + esc(formatCurrency(breakdown.total)) + " · Estado: " + statusLabel + "</span>";
+    }
+    return "<div class='team-finance-card'><div><span class='small-muted'>Modo</span><strong>" + esc(billingLabel) + "</strong></div><div><span class='small-muted'>Arbitrajes</span><strong>" + esc(String(breakdown.refereeGames)) + " × " + esc(formatCurrency(breakdown.refereeCost)) + "</strong></div><div><span class='small-muted'>Total</span><strong>" + esc(formatCurrency(breakdown.total)) + "</strong></div><div><span class='small-muted'>Estado</span><strong>" + statusLabel + "</strong></div></div>";
   }
 
   function renderOverlaps() {

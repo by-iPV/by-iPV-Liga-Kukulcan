@@ -774,3 +774,16 @@ Uso:
   - verificacion:
     - `node --check app.js`
     - `node --check config.js`
+- Actividad 8 concluida: `Resumen financiero visible`
+  - el resumen financiero guardado por equipo ahora se muestra en:
+    - `Resumen > Equipos registrados`
+    - `Equipos > Listado visual`
+  - la vista resume:
+    - modo de cobro
+    - arbitrajes requeridos y costo unitario
+    - total
+    - estado de pago
+  - si una categoria aun no tiene precio configurado, la UI lo indica sin romper el flujo actual
+  - no se altero la forma de guardado; solo se hizo visible el desglose ya existente
+  - verificacion:
+    - `node --check app.js`
