@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hub Sport LSK Ultra Light</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="app-loading">
+  <div id="loadingOverlay" class="loading-overlay" aria-live="polite" aria-label="Cargando escaparate">
+    <div class="loading-overlay-inner">
+      <strong id="loadingLabel" class="loading-label">... by iPV</strong>
+      <div class="loading-progress-shell" aria-hidden="true">
+        <div class="loading-progress-line loading-progress-line-top"></div>
+        <div class="loading-progress">
+          <div class="loading-progress-card">
+            <div id="loadingProgressTrack" class="loading-progress-track">
+              <span class="loading-progress-slot"></span>
+              <span class="loading-progress-slot"></span>
+              <span class="loading-progress-slot"></span>
+              <span class="loading-progress-slot"></span>
+              <span class="loading-progress-slot"></span>
+            </div>
+          </div>
+          <strong id="loadingPercent" class="loading-percent">0%</strong>
+        </div>
+        <div class="loading-progress-line loading-progress-line-bottom"></div>
+      </div>
+    </div>
+  </div>
+  <div class="app-background"></div>
+  <div class="app-shell">
+    <aside id="sidebar" class="sidebar card-glass">
+        <div class="sidebar-brand">
+          <div id="brandMark" class="brand-mark">
+            <img src="../assets/project-h-mark-h-v2.png" alt="Project H">
+          </div>
+          <div id="brandMarkTooltip" class="sidebar-brand-tooltip hidden">Hub Sport LSK - Proyecto H - by iPV</div>
+          <div class="sidebar-brand-copy">
+            <p class="eyebrow">Hub Sport LSK</p>
+            <strong>Panel promocional</strong>
+          </div>
+        </div>
+      <button type="button" id="sidebarToggle" class="sidebar-toggle" aria-expanded="true">
+        <span class="sidebar-toggle-icon" aria-hidden="true">❮</span>
+      </button>
+      <nav class="sidebar-nav" aria-label="Navegacion principal">
+        <button type="button" class="nav-item is-active"><span class="nav-icon">◫</span><span class="nav-label">Escaparate</span></button>
+        <button type="button" class="nav-item"><span class="nav-icon">◪</span><span class="nav-label">Categorias</span></button>
+        <button type="button" class="nav-item"><span class="nav-icon">◧</span><span class="nav-label">Opacidad</span></button>
+      </nav>
+      <div class="sidebar-extra">
+        <section class="sidebar-mini card-soft" aria-label="Modo de visualizacion">
+          <span class="sidebar-mini-label">Vista</span>
+          <div class="mode-switch" role="group" aria-label="Alternar vista de datos">
+            <button type="button" id="viewModePreBtn" class="mode-btn is-active">Ver pre-inscritos</button>
+            <button type="button" id="viewModeDemoBtn" class="mode-btn">Ver demo</button>
+          </div>
+        </section>
+        <section class="sidebar-mini sidebar-opacity card-soft" aria-label="Opacidad visual">
+          <span class="sidebar-mini-label">Opacidad</span>
+          <input type="range" id="glassOpacityRange" min="0.00" max="1.00" step="0.01" value="0.08">
+          <strong id="glassOpacityValue" class="sidebar-mini-value">0.08</strong>
+        </section>
+        <section class="sidebar-mini card-soft" aria-label="En linea">
+          <span class="sidebar-mini-label">En linea</span>
+          <strong id="onlineCount" class="sidebar-mini-value">--</strong>
+          <span id="onlineStatus" class="sidebar-mini-note">PCL</span>
+        </section>
+        <section class="sidebar-mini card-soft" aria-label="Resumen rapido">
+          <span class="sidebar-mini-label">Pre</span>
+          <strong id="preCount">0</strong>
+          <span class="sidebar-mini-label">Ins</span>
+          <strong id="inscribedCount">0</strong>
+          <span class="sidebar-mini-label">Cat</span>
+          <strong id="categoryCount">0</strong>
+        </section>
+      </div>
+    </aside>
+
+    <div class="page-shell">
+      <section class="top-showcase">
+      <article class="hero-panel hero-side card-glass">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Patrocinadores</p>
+            <h2>Oficiales</h2>
+          </div>
+        </div>
+        <div id="sponsorsCarousel" class="sponsors-carousel"></div>
+      </article>
+
+      <article class="hero-panel hero-main card-glass">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Temporada 2026</p>
+            <h1>Hub Sport LSK</h1>
+          </div>
+          <div class="hero-login-slot">
+            <button type="button" id="heroLoginBtn" class="hero-badge hero-login-btn">Acceso con Google</button>
+            <div id="heroLoginTooltip" class="hero-login-tooltip hidden">
+              <span id="heroLoginTooltipText"></span>
+              <button type="button" id="heroLoginTooltipLogout" class="hero-login-tooltip-logout" aria-label="Cerrar sesión">Salir</button>
+            </div>
+            <div id="loginDropdown" class="login-dropdown hidden">
+              <p id="authStatus" class="muted">Inicia sesión con Google para personalizar la categoría origen del enlace.</p>
+              <div id="googleLoginButton" class="google-login-placeholder">
+                <span class="google-mark">G</span>
+                <span>Continuar con Google</span>
+              </div>
+              <div id="userSession" class="user-session hidden">
+                <strong id="userName">Usuario</strong>
+                <span id="userEmail" class="muted"></span>
+                <button type="button" id="logoutBtn" class="btn-ghost btn-small">Cerrar sesión</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="hero-subtitle">
+          Escaparate promocional de equipos y categorias, construido sobre fuentes reales de pre-inscripcion e inscripcion.
+        </p>
+        <div class="source-bar card-soft">
+          <div>
+            <span class="field-label">Perfil de origen</span>
+            <select id="sourceEmailSelect"></select>
+          </div>
+          <div>
+            <span class="field-label">Origen de enlace</span>
+            <strong id="sourceEmailValue">Sin perfil</strong>
+          </div>
+          <div>
+            <span class="field-label">Modo seccion A</span>
+            <strong id="sourceModeValue">Catalogo general</strong>
+          </div>
+        </div>
+      </article>
+
+      <article class="hero-panel hero-side card-glass">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Equipos</p>
+            <h2>Inscritos</h2>
+          </div>
+        </div>
+        <div id="inscribedLogosRail" class="team-logos-carousel"></div>
+      </article>
+
+    </section>
+
+    <main class="content-stack">
+      <section class="panel card-glass">
+        <div class="panel-head">
+          <div>
+            <p id="sectionAEyebrow" class="eyebrow">Mis categorías</p>
+          </div>
+          <span id="sectionAStatus" class="status-pill hidden">Catalogo general</span>
+        </div>
+        <p id="sectionADescription" class="section-copy"></p>
+        <div class="section-category-strip">
+          <h3 id="sectionATitle" class="section-category-title">Equipo(s) Pre-inscrito(s)/Inscrito(s)</h3>
+          <span id="activeCategoryMeta" class="section-category-meta">Sin datos de origen</span>
+          <div class="section-category-side">
+            <div id="sectionANav" class="section-nav" aria-label="Navegación de categorías sección A">
+              <button type="button" id="sectionAPrevBtn" class="section-nav-btn" aria-label="Categoría anterior sección A">&lt;</button>
+              <button type="button" id="sectionANextBtn" class="section-nav-btn" aria-label="Categoría siguiente sección A">&gt;</button>
+            </div>
+            <h3 id="activeCategoryName" class="section-category-name">Sin categoria</h3>
+          </div>
+        </div>
+        <div id="sectionADeck" class="logo-carousel"></div>
+      </section>
+
+      <section class="panel card-glass">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Todas las categorías</p>
+          </div>
+          <span id="sectionBStatus" class="status-pill status-pill-soft hidden">Todas las demas categorias</span>
+        </div>
+        <p class="section-copy"></p>
+        <div class="section-category-strip section-category-strip-soft">
+          <h3 id="sectionBTitle" class="section-category-title">Categorías disponibles del evento</h3>
+          <span id="sectionBCategoryMeta" class="section-category-meta">Categorías disponibles</span>
+          <div class="section-category-side">
+            <div id="sectionBNav" class="section-nav" aria-label="Navegación de categorías sección B">
+              <button type="button" id="sectionBPrevBtn" class="section-nav-btn" aria-label="Categoría anterior sección B">&lt;</button>
+              <button type="button" id="sectionBNextBtn" class="section-nav-btn" aria-label="Categoría siguiente sección B">&gt;</button>
+            </div>
+            <h3 id="sectionBCategoryName" class="section-category-name">Catálogo completo</h3>
+          </div>
+        </div>
+        <div id="sectionBDeck" class="logo-carousel"></div>
+      </section>
+    </main>
+    </div>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+name = "hub-sport-lsk-presence"
+main = "worker.js"
+compatibility_date = "2026-04-10"
+
+[durable_objects]
+bindings = [
+  { name = "PRESENCE_ROOM", class_name = "PresenceRoom" }
+]
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["PresenceRoom"]
+
+# Producción
+[[d1_databases]]
+binding = "PRESENCE_DB"
+database_name = "hub_sport_lsk_presence_prod"
+database_id = "REEMPLAZAR_DATABASE_ID_PROD"
+preview_database_id = "REEMPLAZAR_DATABASE_ID_PROD"
+
+[env.staging]
+
+[env.staging.vars]
+APP_ENV = "staging"
+
+# Staging
+[[env.staging.d1_databases]]
+binding = "PRESENCE_DB"
+database_name = "hub_sport_lsk_presence_staging"
+database_id = "REEMPLAZAR_DATABASE_ID_STAGING"
+preview_database_id = "REEMPLAZAR_DATABASE_ID_STAGING"
