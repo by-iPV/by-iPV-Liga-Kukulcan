@@ -1,4 +1,4 @@
-# Hub Sport LSK Ultra Light - Lecciones Aprendidas Replicadas (Presencia)
+# Hub Sport Ultra Light - Lecciones Aprendidas Replicadas (Presencia)
 
 ## Trazabilidad
 - Release: `REL-HUB-01`
@@ -12,7 +12,7 @@
    - `staging`
    - `prod`
 2. `roomId` explicito por proyecto:
-   - `hub-sport-lsk-global`
+   - `hub-sport-global`
 3. Contrato de tiempos consistente:
    - `heartbeatMs = 15000`
    - `countRefreshMs = 10000`
@@ -39,10 +39,10 @@
   - tabla `presence_visits` para bitácora técnica
 
 ## 3) Criterio operativo
-- Esta replicación **no acopla** todavía el contador en el layout final de LSK.
+- Esta replicación **no acopla** todavía el contador en el layout final del hub por evento.
 - Deja lista la base de configuración para implementación controlada en el siguiente paso de integración.
 
 ## 4) Validación rápida
-1. Abrir consola en LSK y confirmar log `[HubPresenceConfig]`.
+1. Abrir consola del hub y confirmar log `[HubPresenceConfig]`.
 2. Confirmar `presence.env` y `endpointBase` correctos.
 3. Confirmar que tracking está en `hash-only`.

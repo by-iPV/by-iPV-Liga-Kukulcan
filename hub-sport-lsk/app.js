@@ -2,6 +2,7 @@
 (function () {
   const config = window.HUB_SPORT_LSK_CONFIG || {};
   const IPV_LOGO = "../assets/logo-ipv-oficial.png";
+  const DEMO_BADGE_SESSION_KEY = "hubSportDemoBadgeState";
   const LOADING_STEP_COUNT = 5;
   const CATEGORY_ORDER = [
     "Menores (Cachi/Mini/Micro)",
@@ -78,7 +79,7 @@
     lastMissingLiveSignature: "",
     sponsorLogoUrls: [],
     externalLogoEntries: [],
-    viewMode: "pre",
+    viewMode: "real",
     presenceRuntime: {
       sessionId: "",
       connected: false,
@@ -90,7 +91,17 @@
     glassOpacity: String((config.settings && config.settings.glassOpacity) || "0.08"),
     googleReady: false,
     tooltipHideTimer: null,
-    brandTooltipHideTimer: null
+    brandTooltipHideTimer: null,
+    runtime: {
+      urlParams: { eventAlias: "", urlEmail: "" },
+      eventAlias: "ipv",
+      eventName: "IPV",
+      eventActive: 1,
+      eventLogo: IPV_LOGO,
+      eventsCatalog: [],
+      dataMode: "",
+      demoBadgeMap: null
+    }
   };
   const curatedFallback = buildCuratedFallbackEntries();
 
@@ -104,6 +115,7 @@
     brandMarkTooltip: document.getElementById("brandMarkTooltip"),
     sidebarToggle: document.getElementById("sidebarToggle"),
     sourceEmailSelect: document.getElementById("sourceEmailSelect"),
+    eventSelect: document.getElementById("eventSelect"),
     sourceEmailValue: document.getElementById("sourceEmailValue"),
     sourceModeValue: document.getElementById("sourceModeValue"),
     glassOpacityRange: document.getElementById("glassOpacityRange"),
@@ -154,6 +166,10 @@
     document.body.classList.add("app-loading");
     try {
       setLoadingProgress(0);
+      state.runtime.urlParams = getUrlParams();
+      await resolveEventContext();
+      await hydrateEventLogo();
+      applyEventBranding();
       state.loggedUser = getSessionUser();
       state.viewMode = getInitialViewMode();
       await loadShowcaseSources();
@@ -163,6 +179,7 @@
       await waitForFonts();
       setLoadingProgress(3);
       state.activeSourceEmail = getInitialSourceEmail();
+      syncUrl();
       hydrateVisualControls();
       applyGlass();
       bindEvents();
@@ -182,31 +199,118 @@
   }
 
   async function loadShowcaseSources() {
-    if (state.viewMode === "demo" || shouldUseDemoData()) {
-      const demo = buildDemoShowcaseSources();
-      applyShowcaseSources(demo.preRegisteredRows, demo.teamRows, "demo-curated");
-      return;
-    }
-    try {
-      const remote = await fetchRemoteShowcaseSources();
-      const preRows = remote.preRegisteredRows || [];
-      const teamRows = remote.teamRows || [];
-      if (!preRows.length && !teamRows.length) throw new Error("bootstrap sin filas para Hub Sport LSK");
-      applyShowcaseSources(preRows, teamRows, "apps-script-bootstrap");
-    } catch (error) {
-      console.warn("[HubSportLSK] fallback a dataset demo por error de fuente remota:", error);
-      applyShowcaseSources(PRE_REGISTERED_SOURCE, TEAMS_SOURCE, "demo-fallback");
-    }
+    const result = await resolveDataPipeline();
+    applyShowcaseSources(result.preRegisteredRows || [], result.teamRows || [], result.mode || "unknown");
+    state.runtime.eventActive = Number(result.eventActive == null ? 1 : result.eventActive) ? 1 : 0;
   }
 
   function shouldUseDemoData() {
     return Boolean(config.dataSource && config.dataSource.useDemoData);
   }
 
+  function getUrlParams() {
+    const params = new URLSearchParams(window.location.search || "");
+    return {
+      eventAlias: String(params.get("event") || "").trim().toLowerCase(),
+      urlEmail: normalizeEmail(params.get("email") || "")
+    };
+  }
+
+  async function resolveEventContext() {
+    const urlAlias = String(state.runtime.urlParams.eventAlias || "").trim().toLowerCase();
+    const sheetsData = await loadEventsFromSheets();
+    const sheetsAlias = String(sheetsData.defaultEventAlias || "").trim().toLowerCase();
+    const configAlias = String((config.events && config.events.defaultEventAlias) || "").trim().toLowerCase();
+    const fallbackAlias = "ipv";
+    const resolvedAlias = urlAlias || sheetsAlias || configAlias || fallbackAlias;
+    state.runtime.eventAlias = resolvedAlias;
+    state.runtime.eventsCatalog = Array.isArray(sheetsData.events) ? sheetsData.events : [];
+    const activeEvent = state.runtime.eventsCatalog.find(function (item) {
+      return String(item.event_alias || "").trim().toLowerCase() === resolvedAlias;
+    }) || null;
+    state.runtime.eventName = String(
+      (activeEvent && activeEvent.event_name) ||
+      (config.events && config.events.namesByAlias && config.events.namesByAlias[resolvedAlias]) ||
+      resolvedAlias.toUpperCase()
+    ).trim();
+    const activeFlag = activeEvent && activeEvent.event_active;
+    state.runtime.eventActive = Number(activeFlag == null ? 1 : activeFlag) ? 1 : 0;
+  }
+
+  async function loadEventsFromSheets() {
+    const spreadsheetId = String((config.events && config.events.spreadsheetId) || "").trim();
+    const settingsSheet = String((config.events && config.events.settingsSheet) || "Settings").trim();
+    const appsUrl = String(config.appsScriptUrl || "").trim();
+    if (!appsUrl || !spreadsheetId) return { defaultEventAlias: "", events: [] };
+    try {
+      const url = appsUrl
+        + "?action=getSettings"
+        + "&spreadsheetId=" + encodeURIComponent(spreadsheetId)
+        + "&sheet=" + encodeURIComponent(settingsSheet);
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("settings http " + response.status);
+      const raw = await response.json();
+      const payload = unwrapResponse(raw);
+      const rows = Array.isArray(payload && payload.settings) ? payload.settings
+        : Array.isArray(payload && payload.rows) ? payload.rows
+          : Array.isArray(payload) ? payload : [];
+      const defaultRow = rows.find(function (row) {
+        return normalizeKey(getField(row, ["key", "Key", "clave"])) === "event";
+      }) || null;
+      const defaultEventAlias = String(getField(defaultRow, ["value", "Value", "valor"]) || "").trim().toLowerCase();
+      const events = Array.isArray(payload && payload.events) ? payload.events : [];
+      return { defaultEventAlias: defaultEventAlias, events: events };
+    } catch (error) {
+      console.warn("[HubSport] settings de eventos no disponibles:", error);
+      return { defaultEventAlias: "", events: [] };
+    }
+  }
+
+  function resolveViewMode(mode) {
+    if (mode === "demo") return "demo";
+    return "real";
+  }
+
+  async function resolveDataPipeline() {
+    const mode = resolveViewMode(state.viewMode);
+    const eventAlias = String(state.runtime.eventAlias || "ipv").trim().toLowerCase();
+    if (eventAlias === "ipv") {
+      if (mode === "demo" || shouldUseDemoData()) {
+        const demoIpv = resolveDemoDataset();
+        return { preRegisteredRows: demoIpv.preRegisteredRows, teamRows: demoIpv.teamRows, mode: "demo-ipv", eventActive: 1 };
+      }
+      try {
+        const remoteIpv = await fetchRemoteShowcaseSources(eventAlias);
+        const preRowsIpv = remoteIpv.preRegisteredRows || [];
+        const teamRowsIpv = remoteIpv.teamRows || [];
+        if (!preRowsIpv.length && !teamRowsIpv.length) throw new Error("bootstrap sin filas para evento");
+        return { preRegisteredRows: preRowsIpv, teamRows: teamRowsIpv, mode: "apps-script-bootstrap-ipv", eventActive: 1 };
+      } catch (error) {
+        console.warn("[HubSport] fallback IPV a dataset demo por error de fuente remota:", error);
+        return { preRegisteredRows: PRE_REGISTERED_SOURCE, teamRows: TEAMS_SOURCE, mode: "demo-fallback-ipv", eventActive: 1 };
+      }
+    }
+    if (mode === "real") {
+      try {
+        const remote = await fetchRemoteShowcaseSources(eventAlias);
+        const preRows = remote.preRegisteredRows || [];
+        const teamRows = remote.teamRows || [];
+        if (!preRows.length && !teamRows.length) throw new Error("bootstrap sin filas para evento");
+        return { preRegisteredRows: preRows, teamRows: teamRows, mode: "apps-script-bootstrap-real", eventActive: state.runtime.eventActive };
+      } catch (error) {
+        console.warn("[HubSport] modo REAL sin datos remotos. fallback seguro a vacío:", error);
+        return { preRegisteredRows: [], teamRows: [], mode: "real-empty-fallback", eventActive: state.runtime.eventActive };
+      }
+    }
+    const demo = resolveDemoDataset();
+    return { preRegisteredRows: demo.preRegisteredRows, teamRows: demo.teamRows, mode: "demo-non-ipv", eventActive: 1 };
+  }
+
   function applyShowcaseSources(preRegisteredRows, teamRows, mode) {
+    state.runtime.dataMode = String(mode || "");
     state.sourceProfiles = (preRegisteredRows || []).map(normalizePreRegisteredRecord).filter(function (item) { return item.email; });
     state.showcaseEntries = buildShowcaseEntries(state.sourceProfiles, (teamRows || []).map(normalizeTeamRecord));
-    console.info("[HubSportLSKDataSource]", {
+    console.info("[HubSportDataSource]", {
       mode: mode,
       preRegisteredCount: state.sourceProfiles.length,
       teamsCount: uniqueBy((teamRows || []).map(normalizeTeamRecord), function (team) { return String(team.id || team.name || ""); }).length,
@@ -214,27 +318,48 @@
     });
   }
 
-  async function fetchRemoteShowcaseSources() {
+  async function fetchRemoteShowcaseSources(eventAlias) {
     const url = String(config.appsScriptUrl || "").trim();
     if (!url) throw new Error("appsScriptUrl no configurado");
-    const response = await fetch(url + "?action=bootstrap");
+    const alias = String(eventAlias || state.runtime.eventAlias || "ipv").trim().toLowerCase();
+    const response = await fetch(url + "?action=bootstrap&event=" + encodeURIComponent(alias));
     const json = await response.json();
     const payload = unwrapResponse(json);
-    const preRowsRaw = payload.preRegisteredTeams || payload.equiposInscritos || payload.preRegistered || payload.inscritos || [];
-    const teamRowsRaw = payload.teams || payload.Teams || payload.teamsRows || [];
+    const preRowsRaw = (payload.preRegisteredTeams || payload.equiposInscritos || payload.preRegistered || payload.inscritos || []).filter(function (row) {
+      return rowMatchesEventAlias(row, alias);
+    });
+    const teamRowsRaw = (payload.teams || payload.Teams || payload.teamsRows || []).filter(function (row) {
+      return rowMatchesEventAlias(row, alias);
+    });
     return {
       preRegisteredRows: (preRowsRaw || []).map(normalizeIncomingPreRegisteredRow),
       teamRows: (teamRowsRaw || []).map(normalizeIncomingTeamRow)
     };
   }
 
+  function rowMatchesEventAlias(row, eventAlias) {
+    const target = String(eventAlias || "").trim().toLowerCase();
+    if (!target) return true;
+    const rowAlias = normalizeEventAliasFromRow(row);
+    if (!rowAlias) return true;
+    return rowAlias === target;
+  }
+
+  function normalizeEventAliasFromRow(row) {
+    const alias = getField(row, ["eventAlias", "event_alias", "event", "alias", "evento", "eventName", "event_name"]);
+    const clean = String(alias || "").trim().toLowerCase();
+    if (!clean) return "";
+    return clean.replace(/\s+/g, "-");
+  }
+
   function resolvePresenceConfig(input) {
-    const env = String(input.env || "local").trim() || "local";
+    const requestedEnv = String(input.env || "auto").trim() || "auto";
+    const env = detectPresenceEnv(requestedEnv);
     const endpointByEnv = input.endpointByEnv || {};
     return {
       enabled: input.enabled !== false,
       env: env,
-      roomId: String(input.roomId || "hub-sport-lsk-global").trim() || "hub-sport-lsk-global",
+      roomId: String(input.roomId || "hub-sport-global").trim() || "hub-sport-global",
       heartbeatMs: Number(input.heartbeatMs) || 15000,
       countRefreshMs: Number(input.countRefreshMs) || 10000,
       staleTtlMs: Number(input.staleTtlMs) || 35000,
@@ -245,6 +370,14 @@
         requireConsent: !input.tracking || input.tracking.requireConsent !== false
       }
     };
+  }
+
+  function detectPresenceEnv(requestedEnv) {
+    if (requestedEnv && requestedEnv !== "auto") return requestedEnv;
+    const hostname = String(window.location.hostname || "").toLowerCase();
+    if (!hostname || hostname === "localhost" || hostname === "127.0.0.1") return "local";
+    if (hostname.endsWith(".workers.dev") || hostname.includes("staging")) return "staging";
+    return "prod";
   }
 
   function announcePresenceConfig() {
@@ -261,7 +394,7 @@
   function bindEvents() {
     el.sidebarToggle.addEventListener("click", toggleSidebar);
     if (el.viewModePreBtn) {
-      el.viewModePreBtn.addEventListener("click", function () { setViewMode("pre"); });
+      el.viewModePreBtn.addEventListener("click", function () { setViewMode("real"); });
     }
     if (el.viewModeDemoBtn) {
       el.viewModeDemoBtn.addEventListener("click", function () { setViewMode("demo"); });
@@ -284,6 +417,23 @@
     if (el.sectionBNextBtn) {
       el.sectionBNextBtn.addEventListener("click", function () {
         moveSectionBCategory(1);
+      });
+    }
+    if (el.eventSelect) {
+      el.eventSelect.addEventListener("change", async function () {
+        const alias = String(el.eventSelect.value || "").trim().toLowerCase();
+        if (!alias || alias === state.runtime.eventAlias) return;
+        state.runtime.eventAlias = alias;
+        state.runtime.eventName = alias.toUpperCase();
+        state.activeCategoryIndex = 0;
+        state.activeDeckOffset = 0;
+        state.activeSectionBIndex = 0;
+        state.activeSectionBDeckOffset = 0;
+        state.deckCache = {};
+        await loadShowcaseSources();
+        state.activeSourceEmail = getInitialSourceEmail();
+        syncUrl();
+        renderAll();
       });
     }
     el.heroLoginBtn.addEventListener("click", function () {
@@ -321,6 +471,12 @@
       logout();
     });
     el.sourceEmailSelect.addEventListener("change", function () {
+      if (resolveViewMode(state.viewMode) === "demo") {
+        state.activeSourceEmail = "";
+        syncUrl();
+        renderAll();
+        return;
+      }
       state.activeSourceEmail = el.sourceEmailSelect.value || "";
       state.activeCategoryIndex = 0;
       state.activeDeckOffset = 0;
@@ -394,8 +550,10 @@
       body: JSON.stringify({
         sessionId: state.presenceRuntime.sessionId,
         roomId: state.presence.roomId,
+        eventAlias: state.runtime.eventAlias,
+        eventName: state.runtime.eventName,
         eventType: eventType,
-        sourceApp: "hub-sport-lsk-ultralight",
+        sourceApp: "hub-sport-ultralight",
         processType: "hub-presence",
         now: Date.now()
       })
@@ -406,7 +564,10 @@
 
   function buildPresenceUrl(eventType) {
     const base = String(state.presence.endpointBase || "").replace(/\/+$/, "");
-    return base + "/presence/" + eventType + "?roomId=" + encodeURIComponent(state.presence.roomId || "hub-sport-lsk-global");
+    return base
+      + "/presence/" + eventType
+      + "?roomId=" + encodeURIComponent(state.presence.roomId || "hub-sport-global")
+      + "&event=" + encodeURIComponent(state.runtime.eventAlias || "ipv");
   }
 
   function presenceLeaveBestEffort(reason) {
@@ -414,8 +575,10 @@
     const payload = JSON.stringify({
       sessionId: state.presenceRuntime.sessionId,
       roomId: state.presence.roomId,
+      eventAlias: state.runtime.eventAlias,
+      eventName: state.runtime.eventName,
       eventType: "leave",
-      sourceApp: "hub-sport-lsk-ultralight",
+      sourceApp: "hub-sport-ultralight",
       processType: "hub-presence",
       reason: String(reason || "leave"),
       now: Date.now()
@@ -432,8 +595,11 @@
   }
 
   function renderAll() {
+    applyEventBranding();
+    applyHeroConfigVisibility();
     updateOpacityValue();
     renderModeSwitch();
+    renderEventsCombo();
     renderSourceSelector();
     renderAuthPanel();
     renderSummary();
@@ -441,6 +607,14 @@
     renderInscribedRail();
     renderSectionA();
     renderSectionB();
+  }
+
+  function applyHeroConfigVisibility() {
+    const isBaseEvent = String(state.runtime.eventAlias || "").trim().toLowerCase() === "ipv";
+    const blocks = document.querySelectorAll(".hero-config-block");
+    blocks.forEach(function (block) {
+      block.style.display = isBaseEvent ? "" : "none";
+    });
   }
 
   function renderSourceSelector() {
@@ -452,10 +626,11 @@
 
     el.sourceEmailSelect.innerHTML = options.join("");
     el.sourceEmailSelect.value = state.activeSourceEmail;
+    el.sourceEmailSelect.disabled = resolveViewMode(state.viewMode) === "demo";
 
     const sourceProfile = getActiveSourceProfile();
     el.sourceEmailValue.textContent = sourceProfile ? sourceProfile.email : "Catalogo general";
-    if (state.viewMode === "demo") {
+    if (resolveViewMode(state.viewMode) === "demo") {
       el.sourceModeValue.textContent = "Demo curado";
     } else {
       el.sourceModeValue.textContent = sourceProfile ? "Categorias del correo origen" : "Rotacion completa";
@@ -464,15 +639,15 @@
 
   function renderModeSwitch() {
     if (!el.viewModePreBtn || !el.viewModeDemoBtn) return;
-    el.viewModePreBtn.classList.toggle("is-active", state.viewMode === "pre");
+    el.viewModePreBtn.classList.toggle("is-active", resolveViewMode(state.viewMode) === "real");
     el.viewModeDemoBtn.classList.toggle("is-active", state.viewMode === "demo");
   }
 
   async function setViewMode(mode) {
-    const next = mode === "demo" ? "demo" : "pre";
+    const next = mode === "demo" ? "demo" : "real";
     if (state.viewMode === next) return;
     state.viewMode = next;
-    window.localStorage.setItem("hubSportLskViewMode", next);
+    window.localStorage.setItem("viewMode", next);
     state.activeCategoryIndex = 0;
     state.activeDeckOffset = 0;
     state.activeSectionBIndex = 0;
@@ -481,6 +656,26 @@
     await loadShowcaseSources();
     state.activeSourceEmail = getInitialSourceEmail();
     renderAll();
+  }
+
+  function renderEventsCombo() {
+    if (!el.eventSelect) return;
+    const resolvedAlias = String(state.runtime.eventAlias || "ipv").trim().toLowerCase();
+    const rows = (state.runtime.eventsCatalog || []).filter(function (item) {
+      return String(item && item.event_alias || "").trim();
+    });
+    const normalizedRows = rows.length ? rows : [{
+      event_alias: resolvedAlias,
+      event_name: state.runtime.eventName || resolvedAlias.toUpperCase(),
+      event_active: state.runtime.eventActive
+    }];
+    el.eventSelect.innerHTML = normalizedRows.map(function (item) {
+      const alias = String(item.event_alias || "").trim().toLowerCase();
+      const name = String(item.event_name || alias.toUpperCase()).trim();
+      const active = Number(item.event_active == null ? 1 : item.event_active) ? "" : " (inactivo)";
+      return "<option value='" + esc(alias) + "'>" + esc(name + " [" + alias.toUpperCase() + "]" + active) + "</option>";
+    }).join("");
+    el.eventSelect.value = resolvedAlias;
   }
 
   function renderAuthPanel() {
@@ -633,7 +828,7 @@
     if (missingSig !== state.lastMissingLiveSignature) {
       state.lastMissingLiveSignature = missingSig;
       if (missingLive.length) {
-        console.info("[HubSportLSK] categorias sin logos en fuente activa (cubiertas por fallback curado):", missingLive);
+        console.info("[HubSport] categorias sin logos en fuente activa (cubiertas por fallback curado):", missingLive);
       }
     }
 
@@ -650,7 +845,7 @@
       if (el.sectionBNextBtn) el.sectionBNextBtn.disabled = !canNavigate;
     }
     if (!categories.length) {
-      console.warn("[HubSportLSK] Seccion B sin logos. Revisar categorias:", CATEGORY_ORDER.slice());
+      console.warn("[HubSport] Seccion B sin logos. Revisar categorias:", CATEGORY_ORDER.slice());
       el.sectionBTitle.textContent = "Categorías disponibles del evento";
       el.sectionBCategoryName.textContent = "Catálogo completo";
       el.sectionBCategoryMeta.textContent = "Categorías disponibles";
@@ -680,8 +875,99 @@
     el.sectionBDeck.innerHTML = renderCardCarousel(entries, {
       forceMarquee: true,
       minItems: 8,
-      trackClass: "section-marquee-track"
+      trackClass: "section-marquee-track",
+      statusBadgeResolver: shouldRenderSectionBStatusBadge
     });
+  }
+
+  function shouldRenderSectionBStatusBadge(entry) {
+    if (resolveViewMode(state.viewMode) !== "real") {
+      return resolveDemoBadgeState(entry);
+    }
+    const mode = String(state.runtime.dataMode || "");
+    const hasRealSheetsData = mode === "apps-script-bootstrap-real" || mode === "apps-script-bootstrap-ipv";
+    if (!hasRealSheetsData) return { showBadge: false };
+    return hasRealStatusBacking(entry)
+      ? { showBadge: true, statusText: entry.status || "Pre-inscrito", isInscribed: entry.status === "Inscrito" }
+      : { showBadge: false };
+  }
+
+  function hasRealStatusBacking(entry) {
+    const existsInTeams = existsEntryInSource(entry, "teams");
+    const existsInInscritos = existsEntryInSource(entry, "preRegistered");
+    return existsInTeams || existsInInscritos;
+  }
+
+  function existsEntryInSource(entry, sourceName) {
+    const source = String(sourceName || "").trim();
+    if (!source) return false;
+    const targetSignature = buildEntrySignature(entry);
+    return state.showcaseEntries.some(function (item) {
+      if (String(item && item.source || "") !== source) return false;
+      return buildEntrySignature(item) === targetSignature;
+    });
+  }
+
+  function buildEntrySignature(entry) {
+    const team = normalizeKey(entry && entry.teamName || "");
+    const category = normalizeKey(entry && entry.categoryDisplay || "");
+    const logo = normalizeAssetPath(entry && entry.logoUrl || "");
+    return [team, category, logo].join("|");
+  }
+
+  function resolveDemoBadgeState(entry) {
+    const map = getDemoBadgeStateMap();
+    const key = buildDemoBadgeKey(entry);
+    if (!map[key]) {
+      map[key] = pickDemoBadgeState();
+      persistDemoBadgeStateMap(map);
+    }
+    const stateValue = String(map[key] || "pre");
+    if (stateValue === "none") {
+      return { showBadge: false, statusText: "", isInscribed: entry && entry.status === "Inscrito" };
+    }
+    if (stateValue === "ins") {
+      return { showBadge: true, statusText: "Inscrito", isInscribed: true };
+    }
+    return { showBadge: true, statusText: "Pre-inscrito", isInscribed: false };
+  }
+
+  function getDemoBadgeStateMap() {
+    if (state.runtime.demoBadgeMap && typeof state.runtime.demoBadgeMap === "object") {
+      return state.runtime.demoBadgeMap;
+    }
+    try {
+      const raw = window.sessionStorage.getItem(DEMO_BADGE_SESSION_KEY);
+      const parsed = raw ? JSON.parse(raw) : {};
+      state.runtime.demoBadgeMap = parsed && typeof parsed === "object" ? parsed : {};
+    } catch (_) {
+      state.runtime.demoBadgeMap = {};
+    }
+    return state.runtime.demoBadgeMap;
+  }
+
+  function persistDemoBadgeStateMap(map) {
+    try {
+      window.sessionStorage.setItem(DEMO_BADGE_SESSION_KEY, JSON.stringify(map || {}));
+    } catch (_) {
+    }
+  }
+
+  function buildDemoBadgeKey(entry) {
+    const id = String(entry && entry.id || "").trim();
+    if (id) return id;
+    return [
+      String(state.runtime.eventAlias || "ipv").trim().toLowerCase(),
+      normalizeKey(entry && entry.teamName || ""),
+      normalizeKey(entry && entry.categoryDisplay || ""),
+      normalizeAssetPath(entry && entry.logoUrl || "")
+    ].join("|");
+  }
+
+  function pickDemoBadgeState() {
+    const states = ["pre", "pre", "pre", "ins", "ins", "none"];
+    const randomIndex = Math.floor(Math.random() * states.length);
+    return states[randomIndex] || "pre";
   }
 
   function startRotation() {
@@ -812,7 +1098,7 @@
     shuffledCategories.forEach(function (category, idx) {
       const mapping = toDemoRawCategory(category);
       const baseName = "Demo " + String(idx + 1).padStart(2, "0");
-      const email = "demo" + String(idx + 1).padStart(2, "0") + "@hub-lsk.local";
+      const email = "demo" + String(idx + 1).padStart(2, "0") + "@hub-sport.local";
       const logoA = safeLogos[idx % safeLogos.length];
       demoPre.push({
         email: email,
@@ -830,7 +1116,7 @@
           name: baseName + " " + category,
           branch: mapping.branch,
           category: mapping.categoryRaw,
-          ownerEmail: "inscrito" + idx + "@hub-lsk.local"
+          ownerEmail: "inscrito" + idx + "@hub-sport.local"
         });
       }
     });
@@ -838,6 +1124,37 @@
       preRegisteredRows: demoPre,
       teamRows: demoTeams
     };
+  }
+
+  function resolveDemoDataset() {
+    if (String(state.runtime.eventAlias || "").trim().toLowerCase() === "ipv") {
+      return buildDemoShowcaseSources();
+    }
+    return buildGlobalDemoShowcaseSources();
+  }
+
+  function buildGlobalDemoShowcaseSources() {
+    const base = buildDemoShowcaseSources();
+    const pre = [];
+    const teams = [];
+    const rounds = 6;
+    for (let r = 0; r < rounds; r += 1) {
+      (base.preRegisteredRows || []).forEach(function (row, idx) {
+        const copy = Object.assign({}, row);
+        const suffix = "-" + String(r + 1) + "-" + String(idx + 1);
+        const rawEmail = String(copy.email || "demo@hub-sport.local");
+        copy.email = rawEmail.replace("@", suffix + "@");
+        copy.teamName = String(copy.teamName || "Demo") + " " + suffix;
+        pre.push(copy);
+      });
+      (base.teamRows || []).forEach(function (row, idx) {
+        const copy = Object.assign({}, row);
+        copy.id = String(copy.id || "demo-team") + "-" + String(r + 1) + "-" + String(idx + 1);
+        copy.name = String(copy.name || "Equipo demo") + " " + (r + 1);
+        teams.push(copy);
+      });
+    }
+    return { preRegisteredRows: pre, teamRows: teams };
   }
 
   function toDemoRawCategory(category) {
@@ -961,7 +1278,7 @@
         email: String(payload.email || "").trim().toLowerCase(),
         name: payload.name || payload.email
       };
-      localStorage.setItem(config.sessionStorageKey || "hub-sport-lsk-session", JSON.stringify(state.loggedUser));
+      localStorage.setItem(config.sessionStorageKey || "hub-sport-session", JSON.stringify(state.loggedUser));
       adoptLoggedUserAsSource();
       closeLoginDropdown();
       renderAll();
@@ -970,7 +1287,7 @@
 
   function logout() {
     state.loggedUser = null;
-    localStorage.removeItem(config.sessionStorageKey || "hub-sport-lsk-session");
+    localStorage.removeItem(config.sessionStorageKey || "hub-sport-session");
     state.activeSourceEmail = getInitialSourceEmail();
     hideLoginTooltipImmediate();
     closeLoginDropdown();
@@ -1000,7 +1317,7 @@
           .map(function (item) { return safeImageUrl(item.url); })
           .filter(Boolean);
       } catch (error) {
-        console.warn("[HubSportLSK] no se pudieron cargar logos de patrocinadores", error);
+        console.warn("[HubSport] no se pudieron cargar logos de patrocinadores", error);
       }
     }
 
@@ -1010,7 +1327,7 @@
         const teamImages = await getImages(teamLogosFolderId);
         state.externalLogoEntries = buildExternalLogoEntries(teamImages);
       } catch (error) {
-        console.warn("[HubSportLSK] no se pudo cargar catálogo masivo de logos", error);
+        console.warn("[HubSport] no se pudo cargar catálogo masivo de logos", error);
       }
     }
   }
@@ -1040,7 +1357,7 @@
       return !byCategory[category];
     });
     if (missing.length) {
-      console.info("[HubSportLSK] categorías sin logos clasificados en catálogo masivo:", missing);
+      console.info("[HubSport] categorías sin logos clasificados en catálogo masivo:", missing);
     }
     return entries;
   }
@@ -1090,6 +1407,48 @@
     }
   }
 
+  function applyEventBranding() {
+    const alias = String(state.runtime.eventAlias || "ipv").trim().toLowerCase();
+    const aliasUpper = alias.toUpperCase();
+    document.title = "Hub Sport " + aliasUpper;
+    const heroTitle = document.getElementById("heroEventTitle");
+    if (heroTitle) heroTitle.textContent = "Hub Sport " + aliasUpper;
+    const heroEyebrow = document.getElementById("heroEventEyebrow");
+    if (heroEyebrow) heroEyebrow.textContent = "Temporada 2026 · " + aliasUpper;
+    const loadingLogo = document.getElementById("loadingEventLogo");
+    if (loadingLogo) {
+      loadingLogo.src = state.runtime.eventLogo || resolveEventLogo(alias);
+      loadingLogo.alt = "Logo " + aliasUpper;
+    }
+  }
+
+  function resolveEventLogo(eventAlias) {
+    const alias = String(eventAlias || state.runtime.eventAlias || "ipv").trim().toLowerCase();
+    const map = (config.events && config.events.logosByAlias) || {};
+    const direct = String(map[alias] || "").trim();
+    if (direct) return safeImageUrl(direct) || direct;
+    const fallback = String((config.events && config.events.fallbackLogo) || IPV_LOGO).trim();
+    return fallback || IPV_LOGO;
+  }
+
+  async function hydrateEventLogo() {
+    const alias = String(state.runtime.eventAlias || "ipv").trim().toLowerCase();
+    const folderId = normalizeFolderId(String((config.events && config.events.logosFolderId) || "").trim());
+    state.runtime.eventLogo = resolveEventLogo(alias);
+    if (!folderId) return;
+    try {
+      const images = await getImages(folderId);
+      const byAlias = images.find(function (item) {
+        const name = normalizeKey(item && item.name || "");
+        return name.indexOf(normalizeKey(alias)) >= 0;
+      });
+      if (byAlias && byAlias.url) {
+        state.runtime.eventLogo = safeImageUrl(byAlias.url) || state.runtime.eventLogo;
+      }
+    } catch (_) {
+    }
+  }
+
   function waitForFonts() {
     if (!document.fonts || !document.fonts.ready) {
       return Promise.resolve();
@@ -1125,7 +1484,7 @@
 
   async function getImages(folderId) {
     if (!folderId) return [];
-    const cacheKey = (config.imageCachePrefix || "hub_sport_lsk_cache_") + folderId;
+    const cacheKey = (config.imageCachePrefix || "hub_sport_cache_") + folderId;
     const ttl = Number(config.imageCacheTtlMs || 300000);
     const cache = readJson(cacheKey, null);
     if (cache && Date.now() - cache.timestamp < ttl) return cache.images || [];
@@ -1163,15 +1522,16 @@
       const minItems = Number(opts.minItems) > 0 ? Number(opts.minItems) : 0;
       const trackClass = String(opts.trackClass || "").trim();
       const singularTravel = Boolean(opts.singularTravel);
+      const statusBadgeResolver = typeof opts.statusBadgeResolver === "function" ? opts.statusBadgeResolver : null;
       if (!entries || !entries.length) {
         return "<div class='empty-state'>Sin elementos para mostrar.</div>";
       }
       if (entries.length === 1 && singularTravel) {
-        const travelItem = renderCardCarouselItem(entries[0]);
+        const travelItem = renderCardCarouselItem(entries[0], statusBadgeResolver ? statusBadgeResolver(entries[0]) : true);
         return "<div class='logo-carousel-single-travel'>" + travelItem + "</div>";
       }
       if (entries.length === 1 && !forceMarquee) {
-        return "<div class='logo-carousel-single'>" + renderCardCarouselItem(entries[0]) + "</div>";
+        return "<div class='logo-carousel-single'>" + renderCardCarouselItem(entries[0], statusBadgeResolver ? statusBadgeResolver(entries[0]) : true) + "</div>";
       }
 
     const baseEntries = entries.slice();
@@ -1179,17 +1539,31 @@
       ? repeatEntriesToLength(baseEntries, minItems)
       : baseEntries;
 
-      const items = renderEntries.map(renderCardCarouselItem).join("");
+      const items = renderEntries.map(function (entry) {
+        return renderCardCarouselItem(entry, statusBadgeResolver ? statusBadgeResolver(entry) : true);
+      }).join("");
       const trackClasses = ["carousel-track"];
       if (trackClass) trackClasses.push(trackClass);
       return "<div class='" + trackClasses.join(" ") + "'><div class='carousel-group'>" + items + "</div><div class='carousel-group' aria-hidden='true'>" + items + "</div></div>";
     }
 
-  function renderCardCarouselItem(entry) {
-      const isInscribed = entry.status === "Inscrito";
+  function renderCardCarouselItem(entry, badgeConfig) {
+      let showStatusBadge = true;
+      let statusText = entry.status || "Pre-inscrito";
+      let isInscribed = entry.status === "Inscrito";
+      if (typeof badgeConfig === "boolean") {
+        showStatusBadge = badgeConfig;
+      } else if (badgeConfig && typeof badgeConfig === "object") {
+        if (badgeConfig.showBadge === false) showStatusBadge = false;
+        if (badgeConfig.statusText) statusText = String(badgeConfig.statusText);
+        if (typeof badgeConfig.isInscribed === "boolean") isInscribed = badgeConfig.isInscribed;
+      }
       const itemClass = "team-logo-item section-logo-item" + (isInscribed ? " is-inscribed" : " is-pre");
-      const label = [entry.teamName, entry.categoryDisplay, entry.status].filter(Boolean).join(" · ");
-      return "<div class='" + itemClass + "' title='" + esc(label) + "'><img src='" + esc(entry.logoUrl || IPV_LOGO) + "' alt='" + esc(entry.teamName || "Equipo") + "' onerror=\"this.src='" + IPV_LOGO + "'\"><span class='section-logo-badge'>" + esc(entry.status || "Pre-inscrito") + "</span></div>";
+      const label = [entry.teamName, entry.categoryDisplay, statusText].filter(Boolean).join(" · ");
+      const badge = showStatusBadge === false
+        ? ""
+        : "<span class='section-logo-badge'>" + esc(statusText) + "</span>";
+      return "<div class='" + itemClass + "' title='" + esc(label) + "'><img src='" + esc(entry.logoUrl || IPV_LOGO) + "' alt='" + esc(entry.teamName || "Equipo") + "' onerror=\"this.src='" + IPV_LOGO + "'\">" + badge + "</div>";
     }
 
   function repeatEntriesToLength(entries, targetLength) {
@@ -1284,6 +1658,9 @@
   function getSectionACategories() {
     const profile = getActiveSourceProfile();
     if (profile && profile.displayCategories.length) return profile.displayCategories;
+    if (resolveViewMode(state.viewMode) === "real" && String(state.runtime.eventAlias || "ipv").toLowerCase() !== "ipv") {
+      return [];
+    }
     const fromLive = CATEGORY_ORDER.filter(function (category) {
       return getRenderableCategoryEntries(category).length > 0;
     });
@@ -1319,30 +1696,35 @@
   }
 
   function getActiveSourceProfile() {
+    if (resolveViewMode(state.viewMode) === "demo") return null;
     return state.sourceProfiles.find(function (profile) {
       return profile.email === state.activeSourceEmail;
     }) || null;
   }
 
   function getInitialSourceEmail() {
+    if (resolveViewMode(state.viewMode) === "demo") return "";
+    const urlEmail = normalizeEmail(state.runtime.urlParams && state.runtime.urlParams.urlEmail);
+    if (urlEmail && state.sourceProfiles.some(function (profile) { return profile.email === urlEmail; })) {
+      return urlEmail;
+    }
     const sessionEmail = normalizeEmail(state.loggedUser && state.loggedUser.email);
     if (sessionEmail && state.sourceProfiles.some(function (profile) { return profile.email === sessionEmail; })) {
       return sessionEmail;
     }
-    const params = new URLSearchParams(window.location.search);
-    const email = normalizeEmail(params.get("email") || "");
-    return state.sourceProfiles.some(function (profile) { return profile.email === email; }) ? email : "";
+    return "";
   }
 
   function getInitialViewMode() {
-    const saved = String(window.localStorage.getItem("hubSportLskViewMode") || "").trim().toLowerCase();
-    if (saved === "pre" || saved === "demo") return saved;
-    return shouldUseDemoData() ? "demo" : "pre";
+    const saved = String(window.localStorage.getItem("viewMode") || "").trim().toLowerCase();
+    if (saved === "real" || saved === "demo") return saved;
+    return shouldUseDemoData() ? "demo" : "real";
   }
 
   function syncUrl() {
     const url = new URL(window.location.href);
-    if (state.activeSourceEmail) url.searchParams.set("email", state.activeSourceEmail);
+    url.searchParams.set("event", String(state.runtime.eventAlias || "ipv").trim().toLowerCase());
+    if (resolveViewMode(state.viewMode) === "real" && state.activeSourceEmail) url.searchParams.set("email", state.activeSourceEmail);
     else url.searchParams.delete("email");
     window.history.replaceState({}, "", url.toString());
   }
@@ -1354,7 +1736,7 @@
   }
 
   function getSessionUser() {
-    return readJson(config.sessionStorageKey || "hub-sport-lsk-session", null);
+    return readJson(config.sessionStorageKey || "hub-sport-session", null);
   }
 
   function renderLoginTooltip() {

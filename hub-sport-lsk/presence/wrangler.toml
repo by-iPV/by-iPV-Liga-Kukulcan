@@ -1,0 +1,31 @@
+name = "hub-sport-lsk-presence"
+main = "worker.js"
+compatibility_date = "2026-04-10"
+
+[durable_objects]
+bindings = [
+  { name = "PRESENCE_ROOM", class_name = "PresenceRoom" }
+]
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["PresenceRoom"]
+
+# Producción
+[[d1_databases]]
+binding = "PRESENCE_DB"
+database_name = "hub_sport_lsk_presence_prod"
+database_id = "904c37c2-7519-4c02-85d8-82bf61e0bc66"
+preview_database_id = "904c37c2-7519-4c02-85d8-82bf61e0bc66"
+
+[env.staging]
+
+[env.staging.vars]
+APP_ENV = "staging"
+
+# Staging
+[[env.staging.d1_databases]]
+binding = "PRESENCE_DB"
+database_name = "hub_sport_lsk_presence_staging"
+database_id = "c652d297-edfb-42f9-8095-808e034bf472"
+preview_database_id = "c652d297-edfb-42f9-8095-808e034bf472"

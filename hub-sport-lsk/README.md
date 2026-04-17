@@ -1,4 +1,4 @@
-# Hub Sport LSK Ultra Light
+# Hub Sport Ultra Light (Multi-evento)
 
 ## Alcance Tecnico MVP
 
@@ -193,15 +193,21 @@ y se activa cuando corresponda dentro del plan de integracion.
   - **nota de ruta**: en este contexto el `SESSION_LOG.md` no vive dentro de `hub-sport-lsk/`, vive un nivel arriba:
     - `.worktrees/hub-sport-lsk-ultralight/SESSION_LOG.md`
 - `hub-sport-lsk/PRESENCE_CONFIG_LESSONS_REPLICATED.md`
-  - replicacion de lecciones aprendidas de `hub-presence-demo` en configuraciones de LSK
+  - replicacion de lecciones aprendidas de `hub-presence-demo` en configuraciones de Hub Sport por evento
   - incluye criterios `local/staging/prod`, privacidad y tracking `hash-only`
 - `hub-sport-lsk/ATG_HAPPY_PATH_DIALOGO_CONEXION_CONTACTO_Y_PRESENCIA.md`
   - guia ATG de integracion para dialogo de conexion, persistencia de correo en tabla dedicada y boton de visitas conectadas
   - separa contacto operativo (correo) de analitica de presencia (`join/heartbeat/leave/count`)
 - `hub-sport-lsk/presence/wrangler.toml.example`
   - plantilla de Worker + Durable Object + D1 separada por entornos
+- `hub-sport-lsk/presence/worker.js`
+  - worker operativo de PCL con endpoints `join / heartbeat / leave / count`
+- `hub-sport-lsk/presence/README.md`
+  - guia corta del modulo backend de presencia
 - `hub-sport-lsk/presence/schema.sql`
   - tabla minima de tracking `presence_visits`
+- `hub-sport-lsk/RUNBOOK_PCL_HUB_SPORT_LSK.md`
+  - manual operativo ATG Happy Path para configuracion, deploy, monitoreo y troubleshooting de PCL
 - `../tools/presence-contact-layer/ATG_HAPPY_PATH_PRESENCE_CONTACT_LAYER.md`
   - capa reusable para otros proyectos/chats con parametros de entrada/salida
   - define almacenamiento por proceso: presencia, contacto y trazabilidad transaccional

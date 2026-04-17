@@ -1,8 +1,8 @@
 window.HUB_SPORT_LSK_CONFIG = {
   appsScriptUrl: "https://script.google.com/macros/s/AKfycbyzw6In__9bHpthCfB56bcxQTkKOgeCiRkBCXIXmT6jWzvEgtJQ7usmf7vAtlwgshib/exec",
   googleClientId: "909480777075-4l5osf38lc6vl5b6ji42do0lemtl8qla.apps.googleusercontent.com",
-  sessionStorageKey: "hub-sport-lsk-session",
-  imageCachePrefix: "hub_sport_lsk_cache_",
+  sessionStorageKey: "hub-sport-session",
+  imageCachePrefix: "hub_sport_cache_",
   imageCacheTtlMs: 300000,
   dataSource: {
     // `false` = consumir fuente real desde Apps Script / Sheet.
@@ -33,19 +33,30 @@ window.HUB_SPORT_LSK_CONFIG = {
       }
     }
   },
+  events: {
+    defaultEventAlias: "ipv",
+    spreadsheetId: "1TNg4Ogygzq9PF3OEzliCI5BGRveutwYADNB5LInKzPU",
+    settingsSheet: "Settings",
+    logosFolderId: "",
+    fallbackLogo: "../assets/logo-ipv-oficial.png",
+    namesByAlias: {
+      ipv: "iPV"
+    },
+    logosByAlias: {}
+  },
   // [REL-HUB-01][A16.0.2][NEW] Lecciones replicadas: configuracion de presencia por entorno (local/staging/prod).
   presence: {
     enabled: true,
-    // `local`, `staging` o `prod`
-    env: "local",
-    roomId: "hub-sport-lsk-global",
+    // `auto`, `local`, `staging` o `prod`
+    env: "auto",
+    roomId: "	",
     heartbeatMs: 15000,
     countRefreshMs: 10000,
     staleTtlMs: 35000,
     endpointByEnv: {
       local: "http://127.0.0.1:8787",
-      staging: "",
-      prod: "https://hub-presence-demo.hsxjxdv5d8.workers.dev"
+      staging: "https://hub-sport-lsk-presence-staging.hsxjxdv5d8.workers.dev",
+      prod: "https://hub-sport-lsk-presence.hsxjxdv5d8.workers.dev"
     },
     tracking: {
       enabled: true,
